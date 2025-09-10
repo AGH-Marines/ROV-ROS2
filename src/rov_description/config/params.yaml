@@ -1,0 +1,9 @@
+rov_state_publisher:
+  ros__parameters:
+
+    # Available at this moment:
+    #  - simplified_rov - simplified version of rov
+    #  - rov_base - rov only with actuators
+    #  - bluerov2 - bluerov2
+    #  - new_robot
+    robot_name: bluerov2
