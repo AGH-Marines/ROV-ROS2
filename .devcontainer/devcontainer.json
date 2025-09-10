@@ -25,7 +25,8 @@
             "twxs.cmake",
             "yzhang.markdown-all-in-one",
             "zachflower.uncrustify",
-            "ms-python.flake8"
+            "ms-python.flake8",
+            "ms-python.isort"
           ]
       }
     },
