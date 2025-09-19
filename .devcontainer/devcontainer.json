@@ -1,5 +1,5 @@
 {
-    "name": "ROS2MARINES DEV",
+    "name": "ROV-ROS2 DEV",
     "remoteUser": "dev",
     "build": {
         "dockerfile": "Dockerfile.devcontainer",
