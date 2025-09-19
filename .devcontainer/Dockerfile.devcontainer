@@ -91,8 +91,7 @@ RUN git clone --branch v1.4 https://github.com/patrykcieslak/stonefish.git  /hom
     && make install \
     && export LD_LIBRARY_PATH=/home/$USERNAME/stonefish/build/libStonefish.so:$LD_LIBRARY_PATH
 
-RUN mkdir -p /home/$USERNAME/ros2_ws/src
-RUN mkdir -p /home/$USERNAME/ros2_ws/src/dev_packages
+RUN mkdir -p /home/$USERNAME/ros2_ws
 RUN chown -R ${USERNAME}:root /home/${USERNAME}/ros2_ws
 
 # Clone packages for developement
@@ -101,32 +100,9 @@ RUN chown -R ${USERNAME}:root /home/${USERNAME}/ros2_ws
 RUN sudo pip3 install ds4drv
 RUN sudo pip3 install osqp
 
-RUN git clone https://github.com/naoki-mizuno/ds4_driver \
-    --branch ${ROS_DISTRO}-devel \
-    /home/$USERNAME/ros2_ws/src/dev_packages/ds4drv_driver
-
 USER ${USERNAME}
-
-# Install robot_localization
-RUN git clone https://github.com/cra-ros-pkg/robot_localization.git  \
-    --branch ${ROS_DISTRO}-devel \
-    /home/$USERNAME/ros2_ws/src/dev_packages/robot_localization
-
-RUN git clone https://github.com/ros-geographic-info/geographic_info.git \
-    --branch 1.0.6 \
-    /home/$USERNAME/ros2_ws/src/dev_packages/geographic_info
-
-RUN git clone https://github.com/ros/diagnostics.git \
-    --branch ros2-${ROS_DISTRO} \
-    /home/$USERNAME/ros2_ws/src/dev_packages/diagnostics
     
-
 USER root
-
-RUN git clone --single-branch https://github.com/patrykcieslak/stonefish_ros2.git \
-    /home/$USERNAME/ros2_ws/src/dev_packages/stonefish_ros2 \
-    && cd /home/$USERNAME/ros2_ws/src/dev_packages/stonefish_ros2 \
-    && git checkout c534077fb577d7edb390cc72cc7603028bd05394
 
 WORKDIR /home/$USERNAME/ros2_ws/src
 

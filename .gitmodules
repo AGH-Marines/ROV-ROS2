@@ -14,3 +14,6 @@
 	path = dev_packages/diagnostics
 	url = https://github.com/ros/diagnostics.git
 	branch = ros2-humble
+[submodule "dev_packages/stonefish_ros2"]
+	path = dev_packages/stonefish_ros2
+	url = https://github.com/AGH-Marines/stonefish_ros2.git
