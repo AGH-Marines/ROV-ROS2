@@ -20,3 +20,7 @@
 [submodule "src/trajectory/traj_gen"]
 	path = src/trajectory/traj_gen
 	url = https://github.com/AGH-Marines/traj_gen.git
+[submodule "src/utils/ros2_numpy"]
+	path = src/utils/ros2_numpy
+	url = https://github.com/Box-Robotics/ros2_numpy.git
+	branch = humble
