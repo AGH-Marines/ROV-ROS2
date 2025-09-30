@@ -3,13 +3,20 @@
 	url = https://github.com/AGH-Marines/stonefish_ros2.git
 [submodule "src/utils/diagnostics"]
 	path = src/utils/diagnostics
+	branch = ros2-humble
 	url = https://github.com/ros/diagnostics.git
 [submodule "src/localization/geographic_info"]
 	path = src/localization/geographic_info
+	branch = 1.0.6
 	url = https://github.com/ros-geographic-info/geographic_info.git
 [submodule "src/localization/robot_localization"]
 	path = src/localization/robot_localization
+	branch = humble-devel
 	url = https://github.com/cra-ros-pkg/robot_localization.git
 [submodule "src/controlers/ds4_driver"]
 	path = src/controlers/ds4_driver
+	branch = humble-devel
 	url = https://github.com/naoki-mizuno/ds4_driver
+[submodule "src/trajectory/traj_gen"]
+	path = src/trajectory/traj_gen
+	url = https://github.com/AGH-Marines/traj_gen.git
