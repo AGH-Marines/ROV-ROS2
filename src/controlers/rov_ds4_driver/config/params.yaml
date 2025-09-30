@@ -1,0 +1,24 @@
+ds4_driver_node:
+  ros__parameters:
+    use_standard_msgs: true
+    autorepeat_rate: 30.0
+
+teleop_twist_joy_node:
+  ros__parameters:
+    require_enable_button: false
+    enable_button: 1
+
+    axis_linear.x: 1
+    axis_linear.y: 0
+    axis_linear.z: 3
+
+    scale_linear.x: 1.0
+    scale_linear.y: 1.0
+    scale_linear.z: 1.0
+
+    axis_angular.yaw: 2
+
+    scale_angular.yaw: 0.5
+
+    publish_stamped_twist: true
+    frame: base_model
