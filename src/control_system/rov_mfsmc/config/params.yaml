@@ -233,11 +233,11 @@ ekf_filter_node:
         #                               0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,     0.0,    1e-9, 0.0,
         #                               0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,     0.0,    0.0,    1e-9]
 
-n_state_publisher:
+rov_state_publisher:
   ros__parameters:
     robot_name: bluerov2
 
-n_thruster_manager:
+rov_thruster_manager:
   ros__parameters:
     thruster_prefix: t200
 
@@ -283,7 +283,7 @@ n_thruster_manager:
     #   20
     thruster_voltage: 20
 
-n_wrench_system_base:
+rov_wrench_system_base:
   ros__parameters:
     controller: "ds4"
 

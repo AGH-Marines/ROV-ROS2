@@ -28,7 +28,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'n_mfsmc_node = nodes.n_mfsmc_node:main'
+            'rov_mfsmc_node = nodes.n_mfsmc_node:main'
         ],
     },
 )

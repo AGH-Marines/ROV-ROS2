@@ -1,14 +1,15 @@
-from abc import ABCMeta, ABC, abstractmethod
+from abc import ABCMeta, abstractmethod
 
-class Controller(metaclass = ABCMeta):
+
+class Controller(metaclass=ABCMeta):
     def __init__(self, name: str, version: str = None):
         self.controller_name = name
         self.controller_version = version 
 
-    @ABC.abstractmethod
+    @abstractmethod
     def run(self) -> bool:
         ...
 
-    @ABC.abstractmethod
+    @abstractmethod
     def stop(self) -> bool:
         ...

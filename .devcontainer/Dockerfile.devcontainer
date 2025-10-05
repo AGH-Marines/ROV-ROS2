@@ -82,7 +82,7 @@ RUN apt-get update && apt-get install -y \
 
 RUN sed -i 's/-lSDL2 /-lSDL2/' /usr/lib/x86_64-linux-gnu/cmake/SDL2/sdl2-config.cmake
 
-RUN git clone --branch v1.4 https://github.com/patrykcieslak/stonefish.git  /home/$USERNAME/stonefish \
+RUN git clone --branch agh-marines-branch https://github.com/AGH-Marines/stonefish.git  /home/$USERNAME/stonefish \
     && cd /home/$USERNAME/stonefish \
     && mkdir build \ 
     && cd build \
@@ -99,6 +99,7 @@ RUN chown -R ${USERNAME}:root /home/${USERNAME}/ros2_ws
 ## Dualshock 4 driver and package
 RUN sudo pip3 install ds4drv
 RUN sudo pip3 install osqp
+RUN sudo pip3 install casadi
 
 USER ${USERNAME}
     

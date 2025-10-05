@@ -8,18 +8,16 @@ from launch_ros.substitutions import FindPackageShare
 
 from ament_index_python import get_package_share_directory
 
+
 def generate_launch_description():
 
     mfsmc_share = FindPackageShare('rov_mfsmc')
-    thruster_manager_share = FindPackageShare('rov_thruster_manager')
-    description_share = FindPackageShare('rov_description')
     wrench_system_share = FindPackageShare('rov_wrench_system')
-    stonefish_share = FindPackageShare('rov_stonefish')
-    
+
     default_config_path = PathJoinSubstitution([mfsmc_share, 'config', 'params.yaml'])
     default_rviz_config_path = PathJoinSubstitution([mfsmc_share, 'rviz', 'tf_basic.rviz'])
 
-        # Define default configuration paths
+    # Define default configuration paths
     default_config_path = PathJoinSubstitution([mfsmc_share, 'config', 'params.yaml'])
 
     # Launch arguments
@@ -84,7 +82,7 @@ def generate_launch_description():
 
     mfsm_node = Node(
         package='rov_mfsmc',
-        executable='n_mfsmc_node',
+        executable='rov_mfsmc_node',
         parameters=[LaunchConfiguration('config')],
         output='screen'
     )
@@ -93,12 +91,12 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(get_package_share_directory('stonefish_ros2') + \
                                       '/launch/stonefish_simulator.launch.py'),
         launch_arguments={
-            'simulation_data': get_package_share_directory('rov_stonefish')+'/data/',
-            'scenario_desc': get_package_share_directory('rov_stonefish')+'/scenarios/windturbine_bluerov2.scn',
+            'simulation_data': get_package_share_directory('rov_stonefish') + '/data/',
+            'scenario_desc': get_package_share_directory('rov_stonefish') + '/scenarios/windturbine_bluerov2.scn',
             'simulation_rate': '30.0',
-            'window_res_x': '2020',
-            'window_res_y': '1480',
-            'rendering_quality': 'medium',
+            'window_res_x': '1820',
+            'window_res_y': '980',
+            'rendering_quality': 'low',
         }.items()
     )
 

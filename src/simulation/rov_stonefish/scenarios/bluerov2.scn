@@ -288,21 +288,21 @@
 			<color rgb="255.0 255.0 255.0"/>
 		</light>
 
-		<sensor name="odometry" type="odometry" rate="60.0">
+		<sensor name="odometry" type="odometry" rate="120.0">
 			<noise position="0.00" velocity="0.00" angle="0.0" angular_velocity="0.00"/>
 			<history value="10"/>
 			<link name="base_link"/>
-			<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+			<origin rpy="3.1416 0.0 0.0" xyz="0.0 0.0 0.0"/>
 			<ros_publisher topic="/$(arg vehicle_name)/odometry"/>
 		</sensor>
 
-		<sensor name="odometry_ref" type="odometry" rate="60.0">
+		<!-- <sensor name="odometry_ref" type="odometry" rate="60.0">
 			<noise position="0.0" velocity="0.0" angle="0.0" angular_velocity="0.00"/>
 			<history value="10"/>
 			<link name="base_link"/>
 			<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 			<ros_publisher topic="/$(arg vehicle_name)/odometry_ref"/>
-		</sensor>
+		</sensor> -->
 
 		<!-- <sensor name="INS" rate="100.0" type="ins">
 			<output_frame rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
@@ -313,14 +313,14 @@
 			<ros_publisher topic="/$(arg vehicle_name)/INS"/>
 		</sensor> -->
 
-		<sensor name="pressure" type="pressure" rate="60.0">
+		<!-- <sensor name="pressure" type="pressure" rate="60.0">
 			<link name="base_link"/>
 			<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 			<noise pressure="5.0"/>
 			<ros_publisher topic="/$(arg vehicle_name)/pressure"/>
-		</sensor>
+		</sensor> -->
 
-		<sensor name="imu_filter" type="imu" rate="60.0">
+		<sensor name="imu_filter" type="imu" rate="120.0">
 			<link name="base_link"/>
 			<origin rpy="3.14 0.0 0.0" xyz="0.0 0.0 0.0"/>
 			<noise angle="0.000000" angular_velocity="0.0000"/>
@@ -334,7 +334,7 @@
 			<ros_publisher topic="/$(arg vehicle_name)/gps"/>
 		</sensor> -->
 
-		<sensor name="dvl" type="dvl" rate="5.0">
+		<!-- <sensor name="dvl" type="dvl" rate="5.0">
 			<link name="base_link"/>
 			<origin rpy="3.1416 0.0 0.0" xyz="0.0 0.0 0.0"/>
 			<specs beam_angle="30.0"/>
@@ -342,7 +342,7 @@
 			<noise velocity="0.0015" altitude="0.001"/>
 			<ros_publisher topic="/$(arg vehicle_name)/dvl_sim" 
 						   altitude_topic="/$(arg vehicle_name)/altitude"/>
-		</sensor>
+		</sensor> -->
 
 		<!-- <sensor name="camera_front" type="camera" rate="10.0">
 			<link name="base_link"/>
