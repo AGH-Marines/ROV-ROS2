@@ -1,0 +1,3 @@
+rov_controller_bus:
+  ros__parameters:
+    c0: 'pid'
