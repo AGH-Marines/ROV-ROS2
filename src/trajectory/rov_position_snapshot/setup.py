@@ -1,4 +1,6 @@
 from setuptools import find_packages, setup
+import os
+from glob import glob
 
 package_name = 'rov_position_snapshot'
 
@@ -10,6 +12,10 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        (os.path.join('share', package_name, 'nodes'), glob(os.path.join('nodes', '*node.py*'))),
+        (os.path.join('share', package_name, 'launch'), glob(os.path.join('launch', '*launch.py*'))),
+        (os.path.join('share', package_name, 'config'), glob(os.path.join('config', '*.yaml*'))),
+        (os.path.join('share', package_name, 'rviz'), glob(os.path.join('rviz', '*.rviz*'))),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -20,6 +26,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'rov_position_snapshot_node = nodes.pose_snapshot_node:main'
         ],
     },
 )
