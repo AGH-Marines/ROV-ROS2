@@ -14,10 +14,11 @@ np.printoptions(precision=4, suppress=True)
 
 
 class ModelFreeSlidingControl(Node, Controller):
+    _is_running: bool = False
 
     def __init__(self):
         Node.__init__(self=self, node_name='rov_mfsmc_node')
-        Controller.__init__(self=self, name='ModelFreeSlidingControl', version='0.1.0')
+        Controller.__init__(self=self, name='ModelFreeSlidingControl', short_name='mfsmc', version='0.1.0')
 
         self.declare_parameter('desired_position_topic_name', '/target_pose')
         self.declare_parameter('desired_twist_topic_name', '/target_twist')
@@ -32,14 +33,7 @@ class ModelFreeSlidingControl(Node, Controller):
         self.declare_parameter('reference_frame', 'world_ned')
         self.declare_parameter('hz', 120)
 
-        self.desired_twist_sub = self.create_subscription(TwistStamped,
-                                                          self.desired_twist_topic_name,
-                                                          self.cb_desired_twist, 10)
-        self.odom_sub = self.create_subscription(Odometry,
-                                                 self.odom_topic_name,
-                                                 self.cb_odom, qos_profile=0)
-
-        self.wrench_pub = self.create_publisher(WrenchStamped, 'mfsc_wrench', 0)
+        self.wrench_pub = self.create_publisher(WrenchStamped, 'calculated_wrench', 0)
         self.sync_trajectory_srv = self.create_service(Trigger, 'sync_trajectory', self.cb_sync_trajectory)
 
         self.tf_buffer = Buffer()
@@ -50,8 +44,15 @@ class ModelFreeSlidingControl(Node, Controller):
         self.target_clock = None
         self.main_clock = None
 
-        self.create_service(Trigger, 'run', self.run)
-        self.create_service(Trigger, 'stop', self.stop)
+        self.desired_twist_sub = None
+        self.odom_sub = None
+
+        self.run_serv = self.create_service(Trigger, f'controllers/{self.controller_name}/run', self.run)
+        self.stop_serv = self.create_service(Trigger, f'controllers/{self.controller_name}/stop', self.stop)
+
+    @property
+    def is_running(self) -> bool:
+        return self._is_running
 
     def run(self, request: Trigger.Request, response: Trigger.Response):
         try:
@@ -64,6 +65,13 @@ class ModelFreeSlidingControl(Node, Controller):
 
             self._frames_synced = False
 
+            self.desired_twist_sub = self.create_subscription(TwistStamped,
+                                                              self.desired_twist_topic_name,
+                                                              self.cb_desired_twist, 0)
+            self.odom_sub = self.create_subscription(Odometry,
+                                                     self.odom_topic_name,
+                                                     self.cb_odom, qos_profile=0)
+
             self.odom_clock = self.create_timer(1 / self.hz, self.cb_odom_frame)
             self.target_clock = self.create_timer(1 / self.hz, self.cb_target_frame)
             self.main_clock = self.create_timer(1 / self.hz, self.cb_main_clock)
@@ -75,17 +83,37 @@ class ModelFreeSlidingControl(Node, Controller):
             response.success = True
             response.message = 'ok'
 
-        except Exception:
+        except Exception as e:
+            self.get_logger().error(f'{e}')
             response.success = False
             response.message = 'not ok'
         finally:
+            self._is_running = response.success
+            self.get_logger().info(f"{self.controller_name} started with status: {self.is_running}")
             return response
 
     def stop(self, request: Trigger.Request, response: Trigger.Response):
         try:
+            self.get_logger().warning('Im here')
             self.odom_clock.cancel()
             self.target_clock.cancel()
             self.main_clock.cancel()
+            self.destroy_subscription(self.odom_sub)
+            self.destroy_subscription(self.desired_twist_sub)
+
+            wrench_msg = WrenchStamped()
+            wrench_msg.header.stamp = self.get_clock().now().to_msg()
+            wrench_msg.header.frame_id = self.odom_frame
+            wrench_msg.wrench.force.x = 0
+            wrench_msg.wrench.force.y = 0
+            wrench_msg.wrench.force.z = 0
+            wrench_msg.wrench.torque.x = 0
+            wrench_msg.wrench.torque.y = 0
+            wrench_msg.wrench.torque.z = 0
+
+            self.wrench_pub.publish(wrench_msg)
+
+            self.get_logger().warning('Im here')
             response.success = True
             response.message = 'ok'
 
@@ -93,6 +121,9 @@ class ModelFreeSlidingControl(Node, Controller):
             response.success = False
             response.message = 'not ok'
         finally:
+            self._is_running = not response.success
+            self.get_logger().info(f"{self.controller_name} stopped with status: {self.is_running}")
+
             return response
 
     def cb_odom_frame(self) -> None:

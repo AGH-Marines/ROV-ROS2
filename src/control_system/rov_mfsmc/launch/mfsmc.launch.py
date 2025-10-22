@@ -12,7 +12,7 @@ from ament_index_python import get_package_share_directory
 def generate_launch_description():
 
     mfsmc_share = FindPackageShare('rov_mfsmc')
-    wrench_system_share = FindPackageShare('rov_wrench_system')
+    passthrough_share = FindPackageShare('rov_passthrough_control')
 
     default_config_path = PathJoinSubstitution([mfsmc_share, 'config', 'params.yaml'])
     default_rviz_config_path = PathJoinSubstitution([mfsmc_share, 'rviz', 'tf_basic.rviz'])
@@ -45,8 +45,8 @@ def generate_launch_description():
         parameters=[LaunchConfiguration('config')]
     )
 
-    wrench_system_launch = IncludeLaunchDescription(
-        launch_description_source=PathJoinSubstitution([wrench_system_share, 'launch', 'base.launch.py']),
+    passthrough_launch = IncludeLaunchDescription(
+        launch_description_source=PathJoinSubstitution([passthrough_share, 'launch', 'base.launch.py']),
         launch_arguments={
             "config": LaunchConfiguration('config')
         }.items()
@@ -114,6 +114,6 @@ def generate_launch_description():
         tf_traj_gen,
         traj_gen_node,
         thruster_manager_node,
-        wrench_system_launch,
+        passthrough_launch,
         mfsm_node
     ])

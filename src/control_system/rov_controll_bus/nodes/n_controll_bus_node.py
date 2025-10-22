@@ -1,15 +1,18 @@
 import rclpy
 from rov_controll_bus.ControllerBus import ControllerBus
+from rclpy.executors import MultiThreadedExecutor, Executor
 
 
 def main():
     rclpy.init()
 
     node = ControllerBus()
+    executor = Executor()
 
-    rclpy.spin(node)
+    rclpy.spin(node, executor)
     node.destroy_node()
     rclpy.shutdown()
+
 
 if __name__ == '__main__':
     main()

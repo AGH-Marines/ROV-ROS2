@@ -283,7 +283,7 @@ rov_thruster_manager:
     #   20
     thruster_voltage: 20
 
-rov_wrench_system_base:
+rov_passthrough_control_node:
   ros__parameters:
     controller: "ds4"
 
