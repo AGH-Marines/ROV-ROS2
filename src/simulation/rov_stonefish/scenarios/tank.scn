@@ -83,7 +83,7 @@
 	</static>
 
 	<include file="$(find rov_stonefish)/scenarios/bluerov2.scn">
-		<arg name="vehicle_name" value="narval"/>
+		<arg name="vehicle_name" value="bluerov2"/>
 		<arg name="position" value="0.0 0.0 0.5"/>
 		<arg name="orientation" value="0.0 0.0 0.0"/>
 	</include>
