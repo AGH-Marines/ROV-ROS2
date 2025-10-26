@@ -47,8 +47,29 @@ class ModelFreeSlidingControl(Node, Controller):
         self.desired_twist_sub = None
         self.odom_sub = None
 
-        self.run_serv = self.create_service(Trigger, f'controllers/{self.controller_name}/run', self.run)
-        self.stop_serv = self.create_service(Trigger, f'controllers/{self.controller_name}/stop', self.stop)
+        self.__des_pos = np.zeros(6)
+        self.__pos = np.zeros(6)
+        self.__des_twist = np.zeros(6)
+        self.__twist = np.zeros(6)
+
+        self.u_sign = np.zeros(6)
+
+        self._frames_synced = False
+
+        self.desired_twist_sub = self.create_subscription(TwistStamped,
+                                                          self.desired_twist_topic_name,
+                                                          self.cb_desired_twist, 0)
+        self.odom_sub = self.create_subscription(Odometry,
+                                                 self.odom_topic_name,
+                                                 self.cb_odom, qos_profile=0)
+
+        self.odom_clock = self.create_timer(1 / self.hz, self.cb_odom_frame)
+        self.target_clock = self.create_timer(1 / self.hz, self.cb_target_frame)
+        self.main_clock = self.create_timer(1 / self.hz, self.cb_main_clock)
+
+        self.sync_frames()
+
+        self.sync_clock = self.create_timer(1 / self.hz, self.cb_sync_clock)
 
     @property
     def is_running(self) -> bool:
@@ -56,10 +77,10 @@ class ModelFreeSlidingControl(Node, Controller):
 
     def run(self, request: Trigger.Request, response: Trigger.Response):
         try:
-            self.__des_pos = None
-            self.__pos = None
-            self.__des_twist = None
-            self.__twist = None
+            self.__des_pos = np.zeros(6)
+            self.__pos = np.zeros(6)
+            self.__des_twist = np.zeros(6)
+            self.__twist = np.zeros(6)
 
             self.u_sign = np.zeros(6)
 

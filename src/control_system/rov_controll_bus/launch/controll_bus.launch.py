@@ -104,7 +104,7 @@ def generate_launch_description():
                                       '/launch/stonefish_simulator.launch.py'),
         launch_arguments={
             'simulation_data': get_package_share_directory('rov_stonefish') + '/data/',
-            'scenario_desc': get_package_share_directory('rov_stonefish') + '/scenarios/wreckage_bluerov2.scn',
+            'scenario_desc': get_package_share_directory('rov_stonefish') + '/scenarios/windturbine_bluerov2.scn',
             'simulation_rate': '50.0',
             # ROZDZIELCZOŚĆ SYMULATORA
             # ------------------------
