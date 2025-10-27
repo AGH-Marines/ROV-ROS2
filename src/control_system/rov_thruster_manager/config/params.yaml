@@ -11,6 +11,7 @@ rov_thruster_manager:
     # Axis of the thruster force. Used only for visualization purposes
     thruster_force_axis: 'x'
 
+    # deprecated
     thruster_wrench_publisher_name: n_thruster_wrench
 
     # Sub Input Wrench Topic Name

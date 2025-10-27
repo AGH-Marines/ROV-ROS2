@@ -5,14 +5,16 @@ from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.actions import Node
 
+
 def generate_launch_description():
     ld = LaunchDescription()
 
-    rov_wrench_system = FindPackageShare('rov_wrench_system')
-    
+    rov_passthrough_control = FindPackageShare('rov_passthrough_control')
 
-    default_config_path = PathJoinSubstitution([rov_wrench_system, 'config', 'params.yaml'])
-    ld.add_action(DeclareLaunchArgument(name="config", default_value=default_config_path, description="File name of configuration"))
+    default_config_path = PathJoinSubstitution([rov_passthrough_control, 'config', 'params.yaml'])
+    ld.add_action(DeclareLaunchArgument(name="config",
+                                        default_value=default_config_path,
+                                        description="File name of configuration"))
 
     ld.add_action(Node(
         package='ds4_driver',
@@ -21,11 +23,10 @@ def generate_launch_description():
     ))
 
     ld.add_action(Node(
-        package="rov_wrench_system",
+        package="rov_passthrough_control",
         executable='base_node',
         parameters=[LaunchConfiguration('config')],
         output="screen"
     ))
 
     return ld
-

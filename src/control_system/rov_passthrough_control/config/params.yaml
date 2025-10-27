@@ -1,4 +1,4 @@
-rov_wrench_system_base:
+rov_passthrough_control_node:
   ros__parameters:
     controller: "ds4"
 

@@ -1,17 +1,19 @@
-import rclpy
 from rclpy.node import Node
+from std_srvs.srv import Trigger
 
 from ds4_driver_msgs.msg import Status
 from geometry_msgs.msg import Wrench, WrenchStamped
 
+from rov_controll_bus.Controller import Controller
+
 import numpy as np
 
 
-class WrenchSystem:
+class PassthroughControl(Node, Controller):
     """
-    
+
     Class managing different controllers for creating wrenches.
-    
+
     Useful for testing and applying forces to robot
 
     :param controller: Controller type. Options are:\n
@@ -48,35 +50,37 @@ class WrenchSystem:
         - **INV_CUBE**\n
         Default: "LINEAR"
     :type equalization_type: str
-    
+
     :param ds4_force_x:
         Default: "axis_left_y"
     :type ds4_force_x: str
-    
+
     :param ds4_force_y:
         Default: "axis_left_x"
     :type ds4_force_y: str
-    
+
     :param ds4_force_z:
         Default: "axis_right_y"
     :type ds4_force_z: str
-    
+
     :param ds4_torque_x:
         Default: "axis_right_y"
     :type ds4_torque_x: str
-    
+
     :param ds4_torque_y:
     :type ds4_torque_y: str
-    
+
     :param ds4_torque_z:
     :type ds4_torque_z: str
     """
 
-    def __init__(self, node: Node):
+    _is_running = False
+
+    def __init__(self):
         """
         Initializes the joystick-to-wrench conversion node.
 
-        This constructor sets up ROS parameters, publishers, and subscriptions for processing joystick 
+        This constructor sets up ROS parameters, publishers, and subscriptions for processing joystick
         input and publishing normalized wrench messages.
 
         :param Node node: The ROS 2 node instance used for logging, parameter management, and communication.
@@ -87,7 +91,8 @@ class WrenchSystem:
                 - `'joy'`: Regular joystick (not implemented)
                 - `'station'`: Control station (not implemented)
             - **wrench_topic_name** (:obj:`str`, default: `'joy_wrench'`): Name of the published Wrench topic.
-            - **wrench_stamped_topic_name** (:obj:`str`, default: `'joy_wrench_stmp'`): Name of the published WrenchStamped topic.
+            - **wrench_stamped_topic_name** (:obj:`str`, default: `'joy_wrench_stmp'`): Name of the published WrenchStamped
+            topic.
             - **send_stamped** (:obj:`bool`, default: `True`): Determines whether to publish a `WrenchStamped` message.
             - **frame_id** (:obj:`str`, default: `'base_link'`): Frame ID for the header of stamped messages.
             - **max_norm** (:obj:`float`, default: `1.0`): Maximum norm value for the normalized wrench.
@@ -123,10 +128,10 @@ class WrenchSystem:
         Returns:
             None
         """
+        Node.__init__(self=self, node_name='rov_passthrough_control_node')
+        Controller.__init__(self=self, name='PassthroughControl', version='0.1.0')
 
-        # Get node and logger
-        self.node = node
-        self._logger = self.node.get_logger()
+        self._logger = self.get_logger()
 
         # Declare parameters
 
@@ -135,28 +140,28 @@ class WrenchSystem:
         # - 'ds4': DUALSHOCK 4 controller (default).
         # - 'joy': Regular joystick (not implemented).
         # - 'station': Control station (not implemented).
-        self.node.declare_parameter("controller", 'ds4')
+        self.declare_parameter("controller", 'ds4')
 
         # The name of the ROS topic where a Wrench message will be published if send_stamped is False.
-        self.node.declare_parameter("wrench_topic_name", "joy_wrench")
+        self.declare_parameter("wrench_topic_name", "joy_wrench")
 
         # The name of the ROS topic where a WrenchStamped message will be published if send_stamped is True.
-        self.node.declare_parameter("wrench_stamped_topic_name", "joy_wrench_stmp")
+        self.declare_parameter("wrench_stamped_topic_name", "calculated_wrench")
 
         # Indicates whether the published message should include a timestamp (WrenchStamped) or not (Wrench).
-        self.node.declare_parameter("send_stamped", True)
+        self.declare_parameter("send_stamped", True)
 
         # The frame ID to use in the header of the WrenchStamped messages.
-        self.node.declare_parameter("frame_id", "base_link")
+        self.declare_parameter("frame_id", "base_link")
 
         # The maximum allowed value for the normalized wrench vector's magnitude.
-        self.node.declare_parameter("max_norm", 20000.0)
+        self.declare_parameter("max_norm", 20000.0)
 
         # The maximum allowed value for the normalized force in wrench vector's magnitude.
-        self.node.declare_parameter("max_force", 10.0)
-        
-        #The maximum allowed value for the normalized torque in wrench vector's magnitude.
-        self.node.declare_parameter("max_torque", 1.0)
+        self.declare_parameter("max_force", 10.0)
+
+        # The maximum allowed value for the normalized torque in wrench vector's magnitude.
+        self.declare_parameter("max_torque", 1.0)
 
         # Specifies the equalization method to be used during normalization.
         # Options:
@@ -165,97 +170,120 @@ class WrenchSystem:
         # - 'CUBE'
         # - 'INVERSE_SQUARE'
         # - 'INVERSE_CUBE'
-        self.node.declare_parameter("equalization_type", "INVERSE_SQUARE")
+        self.declare_parameter("equalization_type", "INVERSE_SQUARE")
 
         # Axis mapping for joystick input to control forces (x, y, z) using the DUALSHOCK 4 controller.
-        self.node.declare_parameter("ds4_force_x", "axis_left_y")  # Force along x-axis.
-        self.node.declare_parameter("ds4_force_y", "axis_left_x")  # Force along y-axis.
-        self.node.declare_parameter("ds4_force_z", "axis_right_y")  # Force along z-axis.
+        self.declare_parameter("ds4_force_x", "axis_left_y")  # Force along x-axis.
+        self.declare_parameter("ds4_force_y", "axis_left_x")  # Force along y-axis.
+        self.declare_parameter("ds4_force_z", "axis_right_y")  # Force along z-axis.
 
         # Axis mapping for joystick input to control torques (x, y, z) using the DUALSHOCK 4 controller.
-        self.node.declare_parameter("ds4_torque_x", "axis_right_x")  # Torque about x-axis.
-        self.node.declare_parameter("ds4_torque_y", "")  # Torque about y-axis (not mapped).
-        self.node.declare_parameter("ds4_torque_z", "")  # Torque about z-axis (not mapped).
-        
+        self.declare_parameter("ds4_torque_x", "axis_right_x")  # Torque about x-axis.
+        self.declare_parameter("ds4_torque_y", "")  # Torque about y-axis (not mapped).
+        self.declare_parameter("ds4_torque_z", "")  # Torque about z-axis (not mapped).
+
         # Whether to inverse input in calculated wrench
-        self.node.declare_parameter('inv_force_x', False)
-        self.node.declare_parameter('inv_force_y', False)
-        self.node.declare_parameter('inv_force_z', False)
+        self.declare_parameter('inv_force_x', False)
+        self.declare_parameter('inv_force_y', False)
+        self.declare_parameter('inv_force_z', False)
 
-        self.node.declare_parameter('inv_torque_x', False)
-        self.node.declare_parameter('inv_torque_y', False)
-        self.node.declare_parameter('inv_torque_z', False)
+        self.declare_parameter('inv_torque_x', False)
+        self.declare_parameter('inv_torque_y', False)
+        self.declare_parameter('inv_torque_z', False)
 
+        self.create_service(Trigger, f'controllers/{self.controller_name}/run', self.run)
+        self.create_service(Trigger, f'controllers/{self.controller_name}/stop', self.stop)
 
+        self.sub_ds4_driver = None
+        self.pub_joy_wrench = None
+
+    def run(self, request: Trigger.Request, response: Trigger.Response):
         # Get parameters
-        self.controller = self.node.get_parameter("controller").value
+        self.controller = self.get_parameter("controller").value
         self.controller = str(self.controller).upper()
 
-        self.wrench_topic_name = self.node.get_parameter("wrench_topic_name").value
-        self.wrench_stamped_topic_name = self.node.get_parameter("wrench_stamped_topic_name").value
-        
+        self.wrench_topic_name = self.get_parameter("wrench_topic_name").value
+        self.wrench_stamped_topic_name = self.get_parameter("wrench_stamped_topic_name").value
 
-        self.send_stamped = self.node.get_parameter("send_stamped").value
-        self.frame_id = self.node.get_parameter("frame_id").value
+        self.send_stamped = self.get_parameter("send_stamped").value
+        self.frame_id = self.get_parameter("frame_id").value
 
-        self.max_norm = self.node.get_parameter('max_norm').value
+        self.max_norm = self.get_parameter('max_norm').value
 
-        self.max_force = self.node.get_parameter('max_force').value
-        self.max_torque = self.node.get_parameter('max_torque').value
+        self.max_force = self.get_parameter('max_force').value
+        self.max_torque = self.get_parameter('max_torque').value
 
-        self.equalization_type = self.node.get_parameter("equalization_type").value
+        self.equalization_type = self.get_parameter("equalization_type").value
         self.equalization_type = str(self.equalization_type).upper()
 
-        self.inv_force_x = self.node.get_parameter('inv_force_x').value
-        self.inv_force_y = self.node.get_parameter('inv_force_y').value
-        self.inv_force_z = self.node.get_parameter('inv_force_z').value
+        self.inv_force_x = self.get_parameter('inv_force_x').value
+        self.inv_force_y = self.get_parameter('inv_force_y').value
+        self.inv_force_z = self.get_parameter('inv_force_z').value
 
-        self.inv_torque_x = self.node.get_parameter('inv_torque_x').value
-        self.inv_torque_y = self.node.get_parameter('inv_torque_y').value
-        self.inv_torque_z = self.node.get_parameter('inv_torque_z').value
+        self.inv_torque_x = self.get_parameter('inv_torque_x').value
+        self.inv_torque_y = self.get_parameter('inv_torque_y').value
+        self.inv_torque_z = self.get_parameter('inv_torque_z').value
 
         # Create publishers
         if self.send_stamped:
             # If published message is WrenchStamped
-            
-            self.pub_joy_wrench = self.node.create_publisher(WrenchStamped, "joy_wrench_stmp", 0)
+
+            self.pub_joy_wrench = self.create_publisher(WrenchStamped, self.wrench_stamped_topic_name, 0)
         else:
             # if published message is Wrench
-            
-            self.pub_joy_wrench = self.node.create_publisher(Wrench, "joy_wrench", 0)
+
+            self.pub_joy_wrench = self.create_publisher(Wrench, self.wrench_topic_name, 0)
 
         if self.controller == 'DS4':
             # Subscribe to ds4 topics
-            
-            self.sub_ds4_driver = self.node.create_subscription(Status, "status", self.cb_ds4_driver, 0)
+
+            self.sub_ds4_driver = self.create_subscription(Status, "status", self.cb_ds4_driver, 0)
 
             # Get name of axis on which wrench will be calculated
-            self.joy_force_x = self.node.get_parameter("ds4_force_x").value # Force along x-axis.
-            self.joy_force_y = self.node.get_parameter("ds4_force_y").value # Force along y-axis.
-            self.joy_force_z = self.node.get_parameter("ds4_force_z").value # Force along z-axis.
+            self.joy_force_x = self.get_parameter("ds4_force_x").value  # Force along x-axis.
+            self.joy_force_y = self.get_parameter("ds4_force_y").value  # Force along y-axis.
+            self.joy_force_z = self.get_parameter("ds4_force_z").value  # Force along z-axis.
 
-            self.joy_torque_x = self.node.get_parameter("ds4_torque_x").value # Torque along x-axis.
-            self.joy_torque_y = self.node.get_parameter("ds4_torque_y").value # Torque along x-axis. (not mapped by default)
-            self.joy_torque_z = self.node.get_parameter("ds4_torque_z").value # Torque along x-axis. (not mapped by default)
-        
+            self.joy_torque_x = self.get_parameter("ds4_torque_x").value  # Torque along x-axis.
+            self.joy_torque_y = self.get_parameter("ds4_torque_y").value  # Torque along x-axis. (not mapped by default)
+            self.joy_torque_z = self.get_parameter("ds4_torque_z").value  # Torque along x-axis. (not mapped by default)
+
         elif self.controller == 'JOY':
             # TODO: implement 'joy' controller
-            
+
             self._logger.fatal(f"Controller: {self.controller} not implemented yet")
-            
+
         elif self.controller == 'STATION':
             # TODO: implement 'station' controller
 
             self._logger.fatal(f"Controller: {self.controller} not implemented yet")
-        
+
         else:
             # Wrong controller parameter
             self._logger.error(f"Controller type: {self.controller} is not supported")
-            self._logger.error(f"Use: DS4, JOY or STATION instead")
+            self._logger.error("Use: DS4, JOY or STATION instead")
 
+        self._is_running = True
+        response.success = True
+        response.message = 'ok'
+        self.get_logger().info(f"{self.controller_name} started with status: {self.is_running}")
 
+        return response
 
-    
+    def stop(self, request: Trigger.Request, response: Trigger.Response):
+        self.destroy_subscription(self.sub_ds4_driver)
+        self.destroy_publisher(self.pub_joy_wrench)
+        self._is_running = False
+        response.success = True
+        response.message = 'ok'
+
+        self.get_logger().info(f"Controller {self.controller_name} stopped with status: {response.success}")
+        return response
+
+    @property
+    def is_running(self) -> bool:
+        return self._is_running
+
     def cb_ds4_driver(self, msg: Status):
         """
         Callback function for processing joystick input from the `ds4_driver` topic.
@@ -266,9 +294,11 @@ class WrenchSystem:
         :param Status msg: The message received from the `ds4_driver` topic containing joystick input.
 
         ROS Parameters:
-            - **send_stamped** (:obj:`bool`): If `True`, publishes a `WrenchStamped` message; otherwise, publishes a `Wrench` message.
+            - **send_stamped** (:obj:`bool`): If `True`, publishes a `WrenchStamped` message; otherwise, publishes a `Wrench`
+            message.
             - **frame_id** (:obj:`str`): Frame ID to use in the header of the stamped message.
-            - **joy_force_x, joy_force_y, joy_force_z** (:obj:`str`): Names of the joystick input attributes for force in the X, Y, and Z directions.
+            - **joy_force_x, joy_force_y, joy_force_z** (:obj:`str`): Names of the joystick input attributes for force in
+            the X, Y, and Z directions.
             - **joy_torque_x** (:obj:`str`): Name of the joystick input attribute for torque around the X-axis.
 
         Attributes:
@@ -282,7 +312,7 @@ class WrenchSystem:
             None
         """
 
-        now = self.node.get_clock().now()
+        now = self.get_clock().now()
 
         if self.send_stamped:
             wrench_msg = WrenchStamped()
@@ -300,27 +330,26 @@ class WrenchSystem:
             w.force.z = float(getattr(msg, self.joy_force_z))
 
             w.torque.x = float(msg.button_dpad_right - msg.button_dpad_left)
-            
-            if self.joy_torque_y == None or self.joy_torque_y == "":
+
+            if self.joy_torque_y is None or self.joy_torque_y == "":
                 # Assign default values if joy_torque_y is not set
-                
+
                 w.torque.y = float(msg.axis_r2 - msg.axis_l2)
-                
+
             else:
                 w.torque.y = float(msg.axis_r2 - msg.axis_l2)
-            
-            if self.joy_torque_z == None or self.joy_torque_y == "":
+
+            if self.joy_torque_z is None or self.joy_torque_y == "":
                 # Assign default values if joy_torque_z is not set
-                
+
                 w.torque.z = float(msg.axis_right_x)
             else:
-                
+
                 w.torque.z = float(msg.axis_right_x)
 
         except Exception as e:
             self._logger.error(f"Wrong wrench: {e}, {w}")
 
-        
         w = self.__normalize_joy_input(w)
 
         # Assign normalized values back to the wrench message
@@ -365,7 +394,7 @@ class WrenchSystem:
         ])
         # Calculate the norm
         norm = np.linalg.norm(wrench_vector)
-        
+
         magnitude_clamped = np.clip(norm, 0, 1)
 
         if norm <= 0:
@@ -375,23 +404,23 @@ class WrenchSystem:
 
         if eq_type == "SQUARE":
             wrench_vector = (wrench_vector / norm) * np.power(magnitude_clamped, 2)
-        
+
         elif eq_type == "CUBE":
             wrench_vector = (wrench_vector / norm) * np.power(magnitude_clamped, 3)
-        
+
         elif eq_type == "INV_SQUARE":
             wrench_vector = (wrench_vector / norm) * (1 - pow(magnitude_clamped - 1, 2))
-        
+
         elif eq_type == "INV_CUBE":
             wrench_vector = (wrench_vector / norm) * (1 + pow(magnitude_clamped - 1, 3))
-        
+
         else:
             wrench_vector = (wrench_vector / norm) * magnitude_clamped
-        
+
         # Update the wrench components with normalized values
         w.force.x, w.force.y, w.force.z = wrench_vector[:3] * self.max_force
         w.torque.x, w.torque.y, w.torque.z = wrench_vector[3:] * self.max_torque
-        
+
         w.force.x = -w.force.x if self.inv_force_x else w.force.x
         w.force.y = -w.force.y if self.inv_force_y else w.force.y
         w.force.z = -w.force.z if self.inv_force_z else w.force.z
@@ -399,6 +428,5 @@ class WrenchSystem:
         w.torque.x = -w.torque.x if self.inv_torque_x else w.torque.x
         w.torque.y = -w.torque.y if self.inv_torque_y else w.torque.y
         w.torque.z = -w.torque.z if self.inv_torque_z else w.torque.z
-
 
         return w

@@ -12,7 +12,7 @@ from ament_index_python import get_package_share_directory
 def generate_launch_description():
 
     stonefish_share = FindPackageShare('rov_stonefish')
-    wrench_system_share = FindPackageShare('rov_wrench_system')
+    passthrough_control = FindPackageShare('rov_passthrough_control')
 
     # Define default configuration paths
     default_config_path = PathJoinSubstitution([stonefish_share, 'config', 'windturbine_bluerov2.yaml'])
@@ -45,7 +45,7 @@ def generate_launch_description():
     )
 
     wrench_system_launch = IncludeLaunchDescription(
-        launch_description_source=PathJoinSubstitution([wrench_system_share, 'launch', 'base.launch.py']),
+        launch_description_source=PathJoinSubstitution([passthrough_control, 'launch', 'base.launch.py']),
         launch_arguments={
             "config": LaunchConfiguration('config')
         }.items()
