@@ -252,7 +252,7 @@ rov_thruster_manager:
     #
     # Name of the topic where the input wrench is published
     #
-    sub_input_wrench_topic_name: "mfsc_wrench"
+    sub_input_wrench_topic_name: "calculated_wrench"
 
     # Output Type:
     #
