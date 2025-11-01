@@ -4,12 +4,11 @@ from std_srvs.srv import Trigger
 from ds4_driver_msgs.msg import Status
 from geometry_msgs.msg import Wrench, WrenchStamped
 
-from rov_controll_bus.Controller import Controller
 
 import numpy as np
 
 
-class PassthroughControl(Node, Controller):
+class PassthroughControl(Node):
     """
 
     Class managing different controllers for creating wrenches.
@@ -129,7 +128,6 @@ class PassthroughControl(Node, Controller):
             None
         """
         Node.__init__(self=self, node_name='rov_passthrough_control_node')
-        Controller.__init__(self=self, name='PassthroughControl', version='0.1.0')
 
         self._logger = self.get_logger()
 
@@ -191,8 +189,8 @@ class PassthroughControl(Node, Controller):
         self.declare_parameter('inv_torque_y', False)
         self.declare_parameter('inv_torque_z', False)
 
-        self.create_service(Trigger, f'controllers/{self.controller_name}/run', self.run)
-        self.create_service(Trigger, f'controllers/{self.controller_name}/stop', self.stop)
+        self.create_service(Trigger, f'controllers/PassthroughControl/run', self.run)
+        self.create_service(Trigger, f'controllers/PassthroughControl/stop', self.stop)
 
         self.sub_ds4_driver = None
         self.pub_joy_wrench = None
