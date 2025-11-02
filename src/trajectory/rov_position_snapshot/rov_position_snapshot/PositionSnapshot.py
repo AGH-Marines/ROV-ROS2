@@ -123,9 +123,10 @@ class PositionSnapshot(Node):
 
     def save(self):
         now = datetime.now()
+        filename = self.filename
         if not re.match(r'.*\.json', self.filename):
-            self.filename += now.strftime("%m-%d_%H:%M")
-            self.filename += '.json'
+            filename += now.strftime("%m-%d_%H:%M")
+            filename += '.json'
 
         dt = 0
         snapshots_dict = []
@@ -151,7 +152,7 @@ class PositionSnapshot(Node):
         data['timestamp'] = now.timestamp()
         data['creation_time'] = now.strftime("%y-%m-%d_%H:%M")
 
-        output_path = os.path.join(self.output_dir, self.filename)
+        output_path = os.path.join(self.output_dir, filename)
 
         with open(output_path, 'w') as json_file:
             json.dump(data, json_file, indent=4)
