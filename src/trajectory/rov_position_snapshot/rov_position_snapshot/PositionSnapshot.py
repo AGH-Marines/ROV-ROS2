@@ -22,6 +22,7 @@ class PositionSnapshot(Node):
         self.declare_parameter('ds4_snapshot_key', 'button_cross')
         self.declare_parameter('ds4_save_key', 'button_triangle')
         self.declare_parameter('parent_frame', 'world_ned')
+        self.declare_parameter('time_ratio', 5)
 
         self.output_dir = self.get_parameter('output_dir').value
         self.filename = self.get_parameter('filename').value
@@ -30,6 +31,8 @@ class PositionSnapshot(Node):
         self.ds4_save_key = self.get_parameter('ds4_save_key').value
 
         self.parent_frame = self.get_parameter('parent_frame').value
+
+        self.time_ratio = self.get_parameter('time_ratio').value
 
         self.sub_ds4 = self.create_subscription(Status, 'status', self.cb_ds4, 0)
 
@@ -142,7 +145,7 @@ class PositionSnapshot(Node):
             d = {
                 'position': message_to_ordereddict(s.pose.position),
                 'orientation': message_to_ordereddict(s.pose.orientation),
-                'time': t - dt
+                'time': t - dt,
             }
 
             snapshots_dict.append(d)
@@ -151,6 +154,7 @@ class PositionSnapshot(Node):
         data['data'] = snapshots_dict
         data['timestamp'] = now.timestamp()
         data['creation_time'] = now.strftime("%y-%m-%d_%H:%M")
+        data['time_ratio'] = self.time_ratio
 
         output_path = os.path.join(self.output_dir, filename)
 
