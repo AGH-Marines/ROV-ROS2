@@ -22,11 +22,7 @@ class ModelFreeSlidingControl(Node):
         self.declare_parameter('desired_twist_topic_name', '/target_twist')
         self.declare_parameter('odom_topic_name', '/odometry/filtered')
 
-        # self.declare_parameter('A', [2.3, 2.3, 10.0, 1.0, 1.0, 0.2])
-        # self.declare_parameter('kd', [4.5, 4.5, 2.5, 1.0, 1.0, 0.01])
-        # self.declare_parameter('ki', [0.1, 0.1, 0.3, 0.1, 0.1, 0.05])
-
-        self.declare_parameter('A',  [2.3, 2.3, 5.0, 1.0, 1.0, 0.2])
+        self.declare_parameter('A', [2.3, 2.3, 5.0, 1.0, 1.0, 0.2])
         self.declare_parameter('kd', [4.5, 4.5, 2.5, 1.0, 1.0, 0.01])
         self.declare_parameter('ki', [0.1, 0.2, 0.3, 0.1, 0.1, 0.05])
 
