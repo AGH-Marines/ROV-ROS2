@@ -12,7 +12,7 @@ from ament_index_python import get_package_share_directory
 def generate_launch_description():
 
     position_snapshot = FindPackageShare('rov_position_snapshot')
-    wrench_system_share = FindPackageShare('rov_wrench_system')
+    wrench_system_share = FindPackageShare('rov_passthrough_control')
 
     default_config_path = PathJoinSubstitution([position_snapshot, 'config', 'params.yaml'])
     default_rviz_config_path = PathJoinSubstitution([position_snapshot, 'rviz', 'tf_basic.rviz'])

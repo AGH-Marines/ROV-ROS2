@@ -4,7 +4,6 @@ from std_srvs.srv import Trigger
 from ds4_driver_msgs.msg import Status
 from geometry_msgs.msg import Wrench, WrenchStamped
 
-
 import numpy as np
 
 
@@ -189,11 +188,73 @@ class PassthroughControl(Node):
         self.declare_parameter('inv_torque_y', False)
         self.declare_parameter('inv_torque_z', False)
 
-        self.create_service(Trigger, f'controllers/PassthroughControl/run', self.run)
-        self.create_service(Trigger, f'controllers/PassthroughControl/stop', self.stop)
-
         self.sub_ds4_driver = None
         self.pub_joy_wrench = None
+
+        # Get parameters
+        self.controller = self.get_parameter("controller").value
+        self.controller = str(self.controller).upper()
+
+        self.wrench_topic_name = self.get_parameter("wrench_topic_name").value
+        self.wrench_stamped_topic_name = self.get_parameter("wrench_stamped_topic_name").value
+
+        self.send_stamped = self.get_parameter("send_stamped").value
+        self.frame_id = self.get_parameter("frame_id").value
+
+        self.max_norm = self.get_parameter('max_norm').value
+
+        self.max_force = self.get_parameter('max_force').value
+        self.max_torque = self.get_parameter('max_torque').value
+
+        self.equalization_type = self.get_parameter("equalization_type").value
+        self.equalization_type = str(self.equalization_type).upper()
+
+        self.inv_force_x = self.get_parameter('inv_force_x').value
+        self.inv_force_y = self.get_parameter('inv_force_y').value
+        self.inv_force_z = self.get_parameter('inv_force_z').value
+
+        self.inv_torque_x = self.get_parameter('inv_torque_x').value
+        self.inv_torque_y = self.get_parameter('inv_torque_y').value
+        self.inv_torque_z = self.get_parameter('inv_torque_z').value
+
+        # Create publishers
+        if self.send_stamped:
+            # If published message is WrenchStamped
+
+            self.pub_joy_wrench = self.create_publisher(WrenchStamped, self.wrench_stamped_topic_name, 0)
+        else:
+            # if published message is Wrench
+
+            self.pub_joy_wrench = self.create_publisher(Wrench, self.wrench_topic_name, 0)
+
+        if self.controller == 'DS4':
+            # Subscribe to ds4 topics
+
+            self.sub_ds4_driver = self.create_subscription(Status, "status", self.cb_ds4_driver, 0)
+
+            # Get name of axis on which wrench will be calculated
+            self.joy_force_x = self.get_parameter("ds4_force_x").value  # Force along x-axis.
+            self.joy_force_y = self.get_parameter("ds4_force_y").value  # Force along y-axis.
+            self.joy_force_z = self.get_parameter("ds4_force_z").value  # Force along z-axis.
+
+            self.joy_torque_x = self.get_parameter("ds4_torque_x").value  # Torque along x-axis.
+            self.joy_torque_y = self.get_parameter("ds4_torque_y").value  # Torque along x-axis. (not mapped by default)
+            self.joy_torque_z = self.get_parameter("ds4_torque_z").value  # Torque along x-axis. (not mapped by default)
+
+        elif self.controller == 'JOY':
+            # TODO: implement 'joy' controller
+
+            self._logger.fatal(f"Controller: {self.controller} not implemented yet")
+
+        elif self.controller == 'STATION':
+            # TODO: implement 'station' controller
+
+            self._logger.fatal(f"Controller: {self.controller} not implemented yet")
+
+        else:
+            # Wrong controller parameter
+            self._logger.error(f"Controller type: {self.controller} is not supported")
+            self._logger.error("Use: DS4, JOY or STATION instead")
 
     def run(self, request: Trigger.Request, response: Trigger.Response):
         # Get parameters
@@ -264,7 +325,7 @@ class PassthroughControl(Node):
         self._is_running = True
         response.success = True
         response.message = 'ok'
-        self.get_logger().info(f"{self.controller_name} started with status: {self.is_running}")
+        self.get_logger().info(f"started with status: {self.is_running}")
 
         return response
 
