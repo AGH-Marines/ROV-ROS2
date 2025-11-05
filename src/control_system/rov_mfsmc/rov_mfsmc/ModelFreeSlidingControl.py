@@ -82,6 +82,8 @@ class ModelFreeSlidingControl(Node):
             return
 
         transform = rnp.numpify(t.transform)
+        pos_from_tf = transform[:3, 3]
+        print("pos_from_tf_model", pos_from_tf)
         self.pos = transform
 
     def cb_target_frame(self) -> None:
