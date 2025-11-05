@@ -30,6 +30,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            'control_system_tester = nodes.control_system_tester_node:main'
         ],
     },
 )

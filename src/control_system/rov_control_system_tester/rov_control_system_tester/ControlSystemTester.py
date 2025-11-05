@@ -1,9 +1,11 @@
 from dataclasses import dataclass, field
 import math
+import os
 
 from rclpy.node import Node
 from rclpy.time import Time
 from tf2_ros import Buffer, TransformListener, StaticTransformBroadcaster
+
 
 @dataclass
 class ControlSystemSample:
@@ -27,7 +29,7 @@ class ControlSystemSample:
     error_orientation_y: float = field(init=False)
     error_orientation_z: float = field(init=False)
 
-    def __post__init__(self):
+    def __post_init__(self):
         self.error_position_x = self.target_position_x - self.robot_position_x
         self.error_position_y = self.target_position_y - self.robot_position_y
         self.error_position_z = self.target_position_z - self.robot_position_z
@@ -58,25 +60,25 @@ class ControlSystemSample:
         return delimiter.join(fields)
 
     def get_values(self, delimiter: str = ';'):
-        values = [self.time,
-                  self.target_position_x,
-                  self.target_position_y,
-                  self.target_position_z,
-                  self.target_orientation_x,
-                  self.target_orientation_y,
-                  self.target_orientation_z,
-                  self.robot_position_x,
-                  self.robot_position_y,
-                  self.robot_position_z,
-                  self.robot_orientation_x,
-                  self.robot_orientation_y,
-                  self.robot_orientation_z,
-                  self.error_position_x,
-                  self.error_position_y,
-                  self.error_position_z,
-                  self.error_orientation_x,
-                  self.error_orientation_y,
-                  self.error_orientation_z]
+        values = [str(round(self.time, 2)),
+                  str(round(self.target_position_x, 3)),
+                  str(round(self.target_position_y, 3)),
+                  str(round(self.target_position_z, 3)),
+                  str(round(self.target_orientation_x, 3)),
+                  str(round(self.target_orientation_y, 3)),
+                  str(round(self.target_orientation_z, 3)),
+                  str(round(self.robot_position_x, 3)),
+                  str(round(self.robot_position_y, 3)),
+                  str(round(self.robot_position_z, 3)),
+                  str(round(self.robot_orientation_x, 3)),
+                  str(round(self.robot_orientation_y, 3)),
+                  str(round(self.robot_orientation_z, 3)),
+                  str(round(self.error_position_x, 3)),
+                  str(round(self.error_position_y, 3)),
+                  str(round(self.error_position_z, 3)),
+                  str(round(self.error_orientation_x, 3)),
+                  str(round(self.error_orientation_y, 3)),
+                  str(round(self.error_orientation_z, 3))]
         return delimiter.join(values)
 
 
@@ -105,7 +107,7 @@ class ControlSystemTester(Node):
         self.declare_parameter('frequency', 15)
         self.declare_parameter('listening_time', 60.0)
         self.declare_parameter('output_dir', '/home/dev/ros2_ws/src/control_system/rov_control_system_tester/output')
-        self.declare_parameter('output_filename', 'output')
+        self.declare_parameter('output_filename', 'output.txt')
 
         self.declare_parameter('odom_frame', 'base_link')
         self.declare_parameter('target_frame', 'traj_gen_node')
@@ -120,14 +122,6 @@ class ControlSystemTester(Node):
         self.target_frame = self.get_parameter('target_frame').value
         self.reference_frame = self.get_parameter('reference_frame').value
 
-        self.get_logger().info(f'Starting Control System Benchmark: \
-                               \tFrequency: {self.frequency} \
-                               \tListening Time: {self.listening_time} \
-                               \tOutput Filename: {self.output_filename} \
-                               \tOdom Frame: {self.odom_frame} \
-                               \tTarget Frame: {self.target_frame} \
-                               \tReference Frame: {self.reference_frame}')
-
         self.tf_buffer = Buffer()
         self.tf_broadcaster = StaticTransformBroadcaster(self)
         self.tf_listener = TransformListener(self.tf_buffer, self)
@@ -135,7 +129,7 @@ class ControlSystemTester(Node):
         self.dt = 1 / self.frequency
 
         self.samples: list[ControlSystemSample] = []
-        self.number_of_samples = self.frequency * self.listening_time
+        self.number_of_samples = int(self.frequency * self.listening_time)
 
         self.main_clock = self.create_timer(self.dt, self.cb_main_clock)
 
@@ -145,22 +139,38 @@ class ControlSystemTester(Node):
 
         try:
             t_odom = self.tf_buffer.lookup_transform(self.odom_frame, self.reference_frame, Time())
-            t_ref = self.tf_buffer.lookup_transform(self.odom_frame, self.reference_frame, Time())
+            t_ref = self.tf_buffer.lookup_transform(self.target_frame, self.reference_frame, Time())
         except Exception:
             return
 
-        if len(self.samples) > self.number_of_samples:
+        if len(self.samples) == self.number_of_samples:
+            self.save()
+
+            self.get_logger().info(f'Test Run Stopped and Saved\n \
+                                   \tOutput File: {self.output_filename}')
+
+            self.destroy_timer(self.main_clock)
             return
+        elif len(self.samples) == 1:
+            self.get_logger().info(f'Starting Control System Benchmark: \
+                        \tFrequency: {self.frequency} \
+                        \tListening Time: {self.listening_time} \
+                        \tOutput Filename: {self.output_filename} \
+                        \tOdom Frame: {self.odom_frame} \
+                        \tTarget Frame: {self.target_frame} \
+                        \tReference Frame: {self.reference_frame}')
 
         t_ref_rot = euler_from_quaternion(x=t_ref.transform.rotation.x,
                                           y=t_ref.transform.rotation.y,
-                                          z=t_ref.transform.rotation.z)
+                                          z=t_ref.transform.rotation.z,
+                                          w=t_ref.transform.rotation.w)
 
         t_odom_rot = euler_from_quaternion(x=t_odom.transform.rotation.x,
                                            y=t_odom.transform.rotation.y,
-                                           z=t_odom.transform.rotation.z)
+                                           z=t_odom.transform.rotation.z,
+                                           w=t_odom.transform.rotation.w)
 
-        sample = ControlSystemSample(time=self.sample_index * self.dt,
+        sample = ControlSystemSample(time=len(self.samples) * self.dt,
                                      target_position_x=t_ref.transform.translation.x,
                                      target_position_y=t_ref.transform.translation.y,
                                      target_position_z=t_ref.transform.translation.z,
@@ -177,9 +187,12 @@ class ControlSystemTester(Node):
         self.samples.append(sample)
 
     def save(self):
-        
-
+        data = self.samples[-1].get_fields() + '\n'
 
         for sample in self.samples:
-            pass
+            data += sample.get_values() + '\n'
 
+        file_path = os.path.join(self.output_dir, self.output_filename)
+
+        with open(file_path, 'w') as file:
+            file.write(data)

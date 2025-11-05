@@ -63,7 +63,7 @@ def generate_launch_description():
     position_snapshot = Node(
         package='rov_position_snapshot',
         executable='rov_position_snapshot_node',
-        arguments=[LaunchConfiguration('config')],
+        parameters=[LaunchConfiguration('config')],
         output='screen'
     )
 

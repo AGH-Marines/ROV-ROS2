@@ -77,8 +77,7 @@ class ModelFreeSlidingControl(Node):
         now = Time()
         try:
             t = self.tf_buffer.lookup_transform(self.odom_frame, self.reference_frame, now)
-        except Exception as e:
-            self.get_logger().error(f"{e}")
+        except Exception:
             return
 
         transform = rnp.numpify(t.transform)
@@ -88,8 +87,7 @@ class ModelFreeSlidingControl(Node):
         now = Time()
         try:
             t = self.tf_buffer.lookup_transform(self.target_frame, self.reference_frame, now)
-        except Exception as e:
-            self.get_logger().error(f"{e}")
+        except Exception:
             return
 
         transform = rnp.numpify(t.transform)

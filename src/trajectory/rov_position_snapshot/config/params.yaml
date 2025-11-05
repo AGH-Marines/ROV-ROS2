@@ -318,5 +318,6 @@ rov_passthrough_control_node:
     inv_torque_y: False
     inv_torque_z: True
 
-
-
+rov_position_snapshot:
+  ros__parameters:
+    filename: 'robosub_1.json'
