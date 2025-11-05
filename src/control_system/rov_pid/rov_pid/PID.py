@@ -39,13 +39,11 @@ class PID(Node):
         self.integral = np.zeros(6)
         self.prev_error = np.zeros(6)
 
-        self.kp = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+        self.kp = [4.0, 4.0, 7.5, 0.5, 0.0, 0.0]
+        self.ki = [0.1, 0.1, 0.05, 0.01, 0.0, 0.0]
+        self.kd = [0.5, 0.5, 0.5, 0.01, 0.0, 0.0]
         self.kp *= np.eye(6)
-
-        self.ki = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
         self.ki *= np.eye(6)
-
-        self.kd = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
         self.kd *= np.eye(6)
 
         self.__des_pos = np.zeros(6)
@@ -102,10 +100,9 @@ class PID(Node):
         u_2_rot = tf_transformations.euler_from_quaternion(u_2_quat)
         u_2 = np.concatenate((u_2_pos, u_2_rot), axis=None)
 
-        error = u_1 - u_2
+        error = u_2 - u_1
 
         P_out = np.diag(self.kp * error).copy()
-        self.get_logger().info(f'{P_out}')
 
         self.integral += error * dt
         I_out = np.diag(self.ki * self.integral).copy()

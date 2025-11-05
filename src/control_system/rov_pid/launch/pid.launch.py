@@ -55,7 +55,7 @@ def generate_launch_description():
     traj_gen_node = Node(
         package='traj_gen',
         executable='min_snap_traj_generator',
-        arguments=['-d', LaunchConfiguration('config')],
+        parameters=[LaunchConfiguration('config')],
         output='screen'
     )
 
@@ -103,6 +103,7 @@ def generate_launch_description():
     description_timer = TimerAction(period=1.0, actions=[rov_state_publisher_node])
     rviz_timer = TimerAction(period=1.0, actions=[rviz_node])
     stonefish_timer = TimerAction(period=2.0, actions=[launch_include])
+    traj_gen_timer = TimerAction(period=4.0, actions=[traj_gen_node, tf_traj_gen])
 
     return LaunchDescription([
         config_arg,
@@ -111,8 +112,7 @@ def generate_launch_description():
         description_timer,
         rviz_timer,
         stonefish_timer,
-        tf_traj_gen,
-        traj_gen_node,
+        traj_gen_timer,
         thruster_manager_node,
         passthrough_launch,
         mfsm_node
