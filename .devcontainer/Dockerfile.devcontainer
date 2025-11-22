@@ -23,13 +23,19 @@ ARG USER_GID=$USER_UID
 RUN groupadd --gid $USER_GID $USERNAME \
     && useradd -s /bin/bash --uid $USER_UID --gid $USER_GID -m $USERNAME \
     && mkdir /home/$USERNAME/.config && chown $USER_UID:$USER_GID /home/$USERNAME/.config
-
+    
 # Set up sudo
 RUN apt-get update \
     && apt-get install -y sudo \
     && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME\
     && chmod 0440 /etc/sudoers.d/$USERNAME \
     && rm -rf /var/lib/apt/lists/*
+
+# Only on server
+# Add vglusers group (GID must match host!)
+# ARG VGL_GID=1001
+# RUN groupadd -g $VGL_GID vglusers || true \
+#     && usermod -aG vglusers $USERNAME
 
 RUN apt-get update \
     && apt-get install -y jstest-gtk\
@@ -41,6 +47,7 @@ RUN apt-get update \
     python3-pip \
     wget \
     libgeographic-dev \
+    mesa-utils \
     && rm -rf /ver/lib/apt/lists/*
 
 # Download ROS2 packages
@@ -59,14 +66,22 @@ COPY ./ros2aliases.env /home/dev/ros2-aliases/.env
 
 # install NVIDIA software
 RUN apt-get update \
- && apt-get -y --quiet --no-install-recommends install \
+    && apt-get -y --quiet --no-install-recommends install \
     libglvnd0 \
     libgl1 \
     libglx0 \
     libegl1 \
     libxext6 \
     libx11-6 \
-  && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/*
+
+# only on server
+# RUN apt-get update \
+#     && apt-get -y --quiet --no-install-recommends install \
+#     libnvidia-gl-535 \
+#     && rm -rf /var/lib/apt/lists/*
+
+
 ENV NVIDIA_VISIBLE_DEVICES=all
 ENV NVIDIA_DRIVER_CAPABILITIES=graphics,utility,compute
 ENV QT_X11_NO_MITSHM=1
@@ -102,7 +117,7 @@ RUN sudo pip3 install osqp
 RUN sudo pip3 install casadi
 
 USER ${USERNAME}
-    
+
 USER root
 
 WORKDIR /home/$USERNAME/ros2_ws/src
