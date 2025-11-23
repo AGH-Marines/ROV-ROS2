@@ -27,7 +27,9 @@ services:
       - seccomp:unconfined
       - apparmor:unconfined
 
-
+    ports:
+      - "7400-7500:7400-7500"
+      - "9900-9999:9900-9999"
     stdin_open: true
     tty: true
     entrypoint: bash
