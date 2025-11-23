@@ -27,7 +27,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            "thruster_manager = nodes.thrusterManager_node:main"
+            "thruster_manager = rov_thruster_manager.nodes.thrusterManager_node:main"
         ],
     },
 )

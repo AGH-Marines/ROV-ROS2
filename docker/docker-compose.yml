@@ -1,0 +1,33 @@
+services:
+  rov:
+    container_name: rov
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.rov
+      args:
+        USERNAME: dev
+        GID: 1000
+        UID: 1000
+
+    user: "1000:1000"
+
+    network_mode: host
+
+    environment:
+      DISPLAY: ${DISPLAY}
+
+    volumes:
+      - /dev:/dev
+
+    # Uprawnienia i możliwości
+    privileged: true
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - seccomp:unconfined
+      - apparmor:unconfined
+
+
+    stdin_open: true
+    tty: true
+    entrypoint: bash

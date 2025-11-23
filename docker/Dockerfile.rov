@@ -1,0 +1,109 @@
+FROM ros-base
+
+ARG ROS_PACKAGE=ros_base \
+    ROS_VERSION=humble
+
+ARG USERNAME=dev
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+
+ENV ROS_DISTRO=${ROS_VERSION} \
+    ROS_ROOT=/opt/ros/${ROS_VERSION} \
+    ROS_PYTHON_VERSION=3 \
+    RMW_IMPLEMENTATION=rmw_fastrtps_cpp \
+    DEBIAN_FRONTEND=noninteractive \
+    SHELL=/bin/bash
+
+# Create a non-root user
+RUN groupadd --gid $USER_GID $USERNAME \
+    && useradd -s /bin/bash --uid $USER_UID --gid $USER_GID -m $USERNAME \
+    && mkdir /home/$USERNAME/.config && chown $USER_UID:$USER_GID /home/$USERNAME/.config
+
+# Set up sudo
+RUN apt-get update \
+    && apt-get install -y sudo nano\
+    && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME\
+    && chmod 0440 /etc/sudoers.d/$USERNAME
+
+RUN apt-get update \
+    && apt-get install -y jstest-gtk\
+    usbutils \
+    xxd \
+    net-tools \
+    iputils-ping \
+    fzf \
+    python3-pip \
+    wget \
+    libgeographic-dev
+
+# Download ROS2 packages
+RUN apt-get update \
+    && apt-get install -y \
+    ros-$ROS_DISTRO-joint-state-publisher \
+    ros-$ROS_DISTRO-joint-state-publisher-gui\
+    ros-$ROS_DISTRO-tf-transformations \
+    ros-$ROS_DISTRO-imu-tools \
+    ros-$ROS_DISTRO-plotjuggler-ros
+
+USER root
+
+RUN mkdir -p /home/$USERNAME/ros2_ws
+RUN chown -R ${USERNAME}:root /home/${USERNAME}/ros2_ws
+
+
+# Clone packages for developement
+
+## Dualshock 4 driver and package
+RUN sudo pip3 install ds4drv
+RUN sudo pip3 install osqp
+RUN sudo pip3 install casadi
+
+USER root
+
+WORKDIR /home/$USERNAME/ros2_ws
+# Install stonefish library
+
+RUN apt-get update && apt-get install -y \
+    python3 python3-pip python3-venv \
+    git cmake build-essential \
+    libopencv-dev libglm-dev libsdl2-dev libfreetype6-dev doxygen \
+    libx11-dev x11-apps \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN sed -i 's/-lSDL2 /-lSDL2/' /usr/lib/x86_64-linux-gnu/cmake/SDL2/sdl2-config.cmake
+
+RUN git clone --branch agh-marines-branch https://github.com/AGH-Marines/stonefish.git  /home/$USERNAME/stonefish \
+    && cd /home/$USERNAME/stonefish \
+    && mkdir build \
+    && cd build \
+    && cmake .. \
+    && make -j$(nproc) \
+    && make install \
+    && export LD_LIBRARY_PATH=/home/$USERNAME/stonefish/build/libStonefish.so:$LD_LIBRARY_PATH
+
+RUN mkdir -p /home/$USERNAME/ros2_ws
+RUN chown -R ${USERNAME}:root /home/${USERNAME}/ros2_ws
+
+# Clone packages for developement
+
+## Dualshock 4 driver and package
+RUN sudo pip3 install ds4drv
+RUN sudo pip3 install osqp
+RUN sudo pip3 install casadi
+
+USER ${USERNAME}
+
+USER root
+
+WORKDIR /home/$USERNAME/ros2_ws/src
+
+
+RUN echo 'source /opt/ros/'$ROS_DISTRO'/setup.bash' >> /home/$USERNAME/.bashrc \
+    && echo 'source /home/'$USERNAME'/ros2-aliases/ros2_aliases.bash' >> /home/$USERNAME/.bashrc \
+    && echo 'source /home/'$USERNAME'/ros2_ws/install/setup.bash' >> /home/$USERNAME/.bashrc
+SHELL ["/bin/bash", "-c"]
+COPY src /home/$USERNAME/ros2_ws/src
+WORKDIR /home/$USERNAME/ros2_ws
+RUN source /opt/ros/humble/setup.bash \
+    && colcon build
+

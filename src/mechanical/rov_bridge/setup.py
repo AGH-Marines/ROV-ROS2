@@ -25,7 +25,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            "stm32 = nodes.stm32_node:main"
+            "stm32 = rov_bridge.nodes.stm32_node:main"
         ],
     },
 )
