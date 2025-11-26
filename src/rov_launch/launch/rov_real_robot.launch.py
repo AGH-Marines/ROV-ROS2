@@ -40,4 +40,9 @@ def generate_launch_description():
         parameters=[LaunchConfiguration('config')],
         output="screen"
     ))
+    ld.add_action(Node(
+        package='rov_description',
+        executable='rov_state_publisher',
+        parameters=[LaunchConfiguration('config')]
+    ))
     return ld

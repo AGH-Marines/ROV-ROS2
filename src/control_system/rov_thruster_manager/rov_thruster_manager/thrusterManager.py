@@ -151,7 +151,7 @@ class ThrusterManager:
         :param msg: Desired wrench (forces and torques) for the thrusters to achieve.
         :type msg: WrenchStamped
         """
-
+        print(len(self.TAMManager.get_thrusters()), flush=True)
         if len(self.TAMManager.get_thrusters()) < 6:
             return
         
