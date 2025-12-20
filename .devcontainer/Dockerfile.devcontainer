@@ -57,7 +57,9 @@ RUN apt-get update \
     ros-$ROS_DISTRO-joint-state-publisher-gui\
     ros-$ROS_DISTRO-tf-transformations \
     ros-$ROS_DISTRO-imu-tools \
-    ros-$ROS_DISTRO-plotjuggler-ros
+    ros-$ROS_DISTRO-plotjuggler-ros \
+    ros-$ROS_DISTRO-py-trees \
+    ros-$ROS_DISTRO-py-trees-ros
 
 USER root
 
