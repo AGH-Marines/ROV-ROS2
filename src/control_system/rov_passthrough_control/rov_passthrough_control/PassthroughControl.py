@@ -155,10 +155,10 @@ class PassthroughControl(Node):
         self.declare_parameter("max_norm", 20000.0)
 
         # The maximum allowed value for the normalized force in wrench vector's magnitude.
-        self.declare_parameter("max_force", 10.0)
+        self.declare_parameter("max_force", 0.1)
 
         # The maximum allowed value for the normalized torque in wrench vector's magnitude.
-        self.declare_parameter("max_torque", 1.0)
+        self.declare_parameter("max_torque", 0.1)
 
         # Specifies the equalization method to be used during normalization.
         # Options:

@@ -1,3 +1,57 @@
+ekf_ref:
+    ros__parameters:
+        frequency: 30.0
+
+        sensor_timeout: 0.5
+
+        two_d_mode: false
+
+        transform_time_offset: 0.0
+
+        transform_timeout: 0.0
+
+        print_diagnostics: true
+
+        debug: false
+
+        debug_out_file: ~/ros2_ws/
+
+        permit_corrected_publication: false
+
+        publish_acceleration: false
+
+        publish_tf: true
+
+        map_frame: map              # Defaults to "map" if unspecified
+        odom_frame: world_ned # Defaults to "odom" if unspecified
+        base_link_frame: base_link_ref  # Defaults to "base_link" if unspecified
+        world_frame: world_ned # Defaults to the value of odom_frame if unspecified
+
+        odom0: /bluerov2/odometry_ref
+
+        odom0_config: [true,  true,  true,
+                       true, true, true,
+                       true, true, true,
+                       false, false, false,
+                       true, true, true]
+
+        odom0_queue_size: 5
+
+        odom0_nodelay: true
+
+        odom0_differential: false
+
+        odom0_relative: true
+        odom0_pose_rejection_threshold: 5.0
+        odom0_twist_rejection_threshold: 1.0
+
+        imu0: /bluerov2/imu_ref
+        imu0_config: [false, false, false,
+                      true,  true,  true,
+                      false, false, false,
+                      true,  true,  true,
+                      false,  false,  false]
+
 ### ekf config file ###
 ekf_filter_node:
     ros__parameters:
@@ -286,9 +340,9 @@ rov_thruster_manager:
 trajectory_generator:
   ros__parameters:
     use_traj_from_file: True
-    traj_file: 'robosub_1.json'
+    traj_file: 'slalom.json'
 
 control_system_tester:
   ros__parameters:
-    output_filename: 'mfsm_robosub_1.txt'
-    listening_time: 150.0
+    output_filename: 'pid_step_slalom_noise_3.txt'
+    listening_time: 60.0

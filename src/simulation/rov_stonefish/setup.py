@@ -36,7 +36,8 @@ setup(
     tests_require=["pytest"],
     entry_points={
         "console_scripts": [
-            "dvl_pose_translation = nodes.dvl_pose_translation_node:main"
+            "dvl_pose_translation = nodes.dvl_pose_translation_node:main",
+            "enable_stonefish_currents = nodes.enable_stonefish_currents_node:main"
         ],
     },
 )

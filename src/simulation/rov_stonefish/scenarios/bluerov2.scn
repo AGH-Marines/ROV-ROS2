@@ -289,20 +289,20 @@
 		</light>
 
 		<sensor name="odometry" type="odometry" rate="120.0">
-			<noise position="0.00" velocity="0.00" angle="0.0" angular_velocity="0.00"/>
+			<noise position="0.10" velocity="0.10" angle="0.10" angular_velocity="0.1"/>
 			<history value="10"/>
 			<link name="base_link"/>
 			<origin rpy="3.1416 0.0 0.0" xyz="0.0 0.0 0.0"/>
 			<ros_publisher topic="/$(arg vehicle_name)/odometry"/>
 		</sensor>
 
-		<!-- <sensor name="odometry_ref" type="odometry" rate="60.0">
+		<sensor name="odometry_ref" type="odometry" rate="120.0">
 			<noise position="0.0" velocity="0.0" angle="0.0" angular_velocity="0.00"/>
 			<history value="10"/>
 			<link name="base_link"/>
-			<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+			<origin rpy="3.1416 0.0 0.0" xyz="0.0 0.0 0.0"/>
 			<ros_publisher topic="/$(arg vehicle_name)/odometry_ref"/>
-		</sensor> -->
+		</sensor>
 
 		<!-- <sensor name="INS" rate="100.0" type="ins">
 			<output_frame rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
@@ -323,8 +323,15 @@
 		<sensor name="imu_filter" type="imu" rate="120.0">
 			<link name="base_link"/>
 			<origin rpy="3.14 0.0 0.0" xyz="0.0 0.0 0.0"/>
-			<noise angle="0.000000" angular_velocity="0.0000"/>
+			<noise angle="0.0000" angular_velocity="0.00"/>
 			<ros_publisher topic="/$(arg vehicle_name)/imu"/>
+		</sensor>
+
+		<sensor name="imu_filter_ref" type="imu" rate="120.0">
+			<link name="base_link"/>
+			<origin rpy="3.14 0.0 0.0" xyz="0.0 0.0 0.0"/>
+			<noise angle="0.000000" angular_velocity="0.0000"/>
+			<ros_publisher topic="/$(arg vehicle_name)/imu_ref"/>
 		</sensor>
 
 		<!-- <sensor name="gps" type="gps" rate="1.0">

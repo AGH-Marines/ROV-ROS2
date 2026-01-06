@@ -3,17 +3,17 @@
 	<environment>
 		<ned latitude="56.136459" longitude="-2.706819"/>
 		<ocean>
-			<water density="1031.0" jerlov="0.15"/>
-			<waves height="0.0"/>
+			<!-- <water density="1031.0" jerlov="0.15"/> -->
+			<!-- <waves height="3.0"/> -->
 			<particles enabled="true"/>
-			<current type="uniform">
-				<velocity xyz="0.0 0.0 0.0"/>
+			<!-- <current type="uniform">
+				<velocity xyz="1000000000.0 0.0 0.0"/>
 			</current>
 			<current type="jet">
 				<center xyz="0.0 0.0 0.0"/>
 				<outlet radius="100.0"/>
 				<velocity xyz="0.0 0.0 0.0"/>
-			</current>
+			</current> -->
 		</ocean>
 		<atmosphere>
 			<sun azimuth="45.0" elevation="90.0"/>
@@ -45,10 +45,11 @@
 		<look name="gray" gray="0.5" roughness="0.4" metalness="0.5"/>
 		<look name="ltgray" gray="0.75" roughness="1.0" metalness="0.0"/>
 		<look name="tank" rgb="0.9 0.9 0.9" roughness="0.9"/>
-		<look name="duct" gray="0.1" roughness="0.4" metalness="0.5"/>		
+		<look name="duct" gray="0.1" roughness="0.4" metalness="0.5"/>
+		<look name="task1" gray="1.0" roughness="0.4" metalness="0.5" texture="robosub/task1.png"/>		
 	</looks>
 
-	<static name="Seabed" type="model">
+	<!-- <static name="Seabed" type="model">
 		<physical>
 			<mesh filename="flat.obj" scale="1.0"/>
 			<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
@@ -56,11 +57,11 @@
 		<material name="Rock"/>
 		<look name="sand"/>
 		<world_transform rpy="0.0 0.0 0.0" xyz="0.0 0.0 6.0"/>
-	</static>
+	</static> -->
 
 	<!-- OREINTATION  -->
 	<!-- Orientation with north -0.52 -->
-	<static name="Wavetank" type="model">
+	<!-- <static name="Wavetank" type="model">
 		<physical>
 			<mesh filename="wavetank.obj" scale="1.0"/>
 			<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
@@ -68,10 +69,10 @@
 		<material name="Rock"/>
 		<look name="tank"/>
 		<world_transform rpy="0.0 0.0 1.57" xyz="0.0 0.0 5.0"/>
-		<!-- <world_transform rpy="0.0 0.0 -.52" xyz="0.0 0.0 5.0"/> -->
-	</static>
+		<world_transform rpy="0.0 0.0 -.52" xyz="0.0 0.0 5.0"/>
+	</static> -->
 
-	<static name="Wavetank_floor" type="model">
+	<!-- <static name="Wavetank_floor" type="model">
 		<physical>
 			<mesh filename="wavetank_floor.obj" scale="1.0"/>
 			<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
@@ -79,13 +80,23 @@
 		<material name="Rock"/>
 		<look name="ltgray"/>
 		<world_transform rpy="0.0 0.0 1.57" xyz="0.0 0.0 -1.0"/>
-		<!-- <world_transform rpy="0.0 0.0 -.52" xyz="0.0 0.0 -1.0"/> -->
-	</static>
+		<world_transform rpy="0.0 0.0 -.52" xyz="0.0 0.0 -1.0"/>
+	</static> -->
 
-	<include file="$(find rov_stonefish)/scenarios/bluerov2.scn">
+	<dynamic name="Mesh" type="model" physics="submerged" buoyant="true">
+		<physical>
+			<mesh filename="robosub/task1.obj" scale="1.0"/>
+			<origin rpy="4.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+		</physical>
+		<material name="Fiberglass"/>
+		<look name="ltgray"/>
+		<world_transform xyz="1.0 2.0 1.0" rpy="0.0 0.0 1.57"/>
+	</dynamic>
+
+	<!-- <include file="$(find rov_stonefish)/scenarios/bluerov2.scn">
 		<arg name="vehicle_name" value="bluerov2"/>
 		<arg name="position" value="0.0 0.0 0.5"/>
 		<arg name="orientation" value="0.0 0.0 0.0"/>
-	</include>
+	</include> -->
 
 </scenario>

@@ -2,7 +2,14 @@
 <scenario>
 	<environment>
 		<ned latitude="41.7777" longitude="3.0333"/>
-		<ocean />
+		<waves height="1.0"/>
+		<ocean>
+			<current type="jet">
+				<center xyz="0.0 -15.0 10.0"/>
+				<outlet radius="10.0"/>
+				<velocity xyz="0.0 0.0 0.01"/>
+			</current>
+		</ocean>
 		<atmosphere>
 			<sun azimuth="20.0" elevation="50.0"/>
 		</atmosphere>

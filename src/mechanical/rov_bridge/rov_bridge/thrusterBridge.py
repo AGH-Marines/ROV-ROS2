@@ -20,10 +20,10 @@ class ThrusterBridge(Bridge, Node):
 
         self.declare_parameter('ip', "192.168.10.100")
         self.declare_parameter('port', 55555)
-        self.declare_parameter('num_of_thrusters', 6)
+        self.declare_parameter('num_of_thrusters', 8)
         self.declare_parameter('queue', [x for x in range(self.num_of_thrusters)])
-        self.declare_parameter('input_type', 'PWM' )
-        self.declare_parameter('input_topic', 'thrusters/PWM')
+        self.declare_parameter('input_type', 'FRC' )
+        self.declare_parameter('input_topic', 'thrusters/FRC')
         
         self.create_subscription(Float64MultiArray, self.input_topic, self.cb_input, 10)
 
@@ -85,19 +85,23 @@ class ThrusterBridge(Bridge, Node):
     
     @package_data_type.setter
     def package_data_type(self, value):
-        self.__package_data_type = ''.join(['i' for _ in range(value)])
+        self.__package_data_type = ''.join(['f' for _ in range(8)])
 
     def rearrange(self, input_array: list):
 
         data = []
         for i in self.queue:
-            data.append((input_array[i] - 1500) / 400)
+            if self.input_type == 'PWM':
+                data.append((input_array[i] - 1500) / 400)
+            data.append((input_array[i]))
 
         return data
     
     def cb_input(self, msg: Float64MultiArray):
-        
+        # self.get_logger().info(f"{msg.data}")
         data = self.rearrange(msg.data)
-        data = pack(self.package_data_type, 2, 24,*data)
-        
+        # data = [0.0, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0]
+        self.get_logger().info(f"{data}")
+        data = pack('<BB8f', 1, 32, *data)
+        self.get_logger().info(f"{data}")
         self.send(data=data)

@@ -39,9 +39,22 @@ class PID(Node):
         self.integral = np.zeros(6)
         self.prev_error = np.zeros(6)
 
-        self.kp = [4.0, 4.0, 7.5, 0.5, 0.0, 0.0]
-        self.ki = [0.1, 0.1, 0.05, 0.01, 0.0, 0.0]
-        self.kd = [0.5, 0.5, 0.5, 0.01, 0.0, 0.0]
+        # continous
+        # self.kp = [4.0, 4.0, 7.5, 0.5, 0.1, 0.1]
+        # self.ki = [1.0, 1.0, 0.5, 0.01, 0.01, 0.01]
+        # self.kd = [0.5, 0.5, 0.5, 0.01, 0.01, 0.01]
+
+        # self.max_anti_windup = [0.1, 0.1, 0.1, 1.0, 1.0, 1.0]
+        # self.min_anti_windup = [-0.1, -0.1, -0.1, -1.0, -1.0, -1.0]
+
+        # step
+        self.kp = [1.3, 1.3, 2.3, 0.5, 0.0, 0.0]
+        self.ki = [0.1, 0.1, 0.25, 0.01, 0.0, 0.0]
+        self.kd = [0.08, 0.08, 0.1, 0.01, 0.0, 0.0]
+
+        self.max_anti_windup = [1.0, 0.1, 3.0, 1.0, 1.0, 1.0]
+        self.min_anti_windup = [-1.0, -0.1, -3.0, -1.0, -1.0, -1.0]
+
         self.kp *= np.eye(6)
         self.ki *= np.eye(6)
         self.kd *= np.eye(6)
@@ -100,11 +113,26 @@ class PID(Node):
         u_2_rot = tf_transformations.euler_from_quaternion(u_2_quat)
         u_2 = np.concatenate((u_2_pos, u_2_rot), axis=None)
 
-        error = u_2 - u_1
+        pos_error = u_2_pos - u_1_pos
+        r_error = self.angle_error(u_2_rot, u_1_rot)
+
+        error = np.concatenate((pos_error, r_error), axis=None)
 
         P_out = np.diag(self.kp * error).copy()
 
-        self.integral += error * dt
+        i_error = []
+
+        for i, e in enumerate(error):
+            if e > self.max_anti_windup[i]:
+                i_error.append(self.max_anti_windup[i])
+            elif e < self.min_anti_windup[i]:
+                i_error.append(self.min_anti_windup[i])
+            else:
+                i_error.append(e)
+
+        i_error = np.asarray(i_error)
+
+        self.integral += i_error * dt
         I_out = np.diag(self.ki * self.integral).copy()
 
         derivative = (error - self.prev_error) / dt
@@ -123,6 +151,13 @@ class PID(Node):
         wrench_msg.wrench.torque.z = float(-out[3])
 
         self.wrench_pub.publish(wrench_msg)
+
+    def angle_error(self, target, current):
+        target = np.asarray(target)
+        current = np.asarray(current)
+        error = target - current
+        error = (error + np.pi) % (2 * np.pi) - np.pi
+        return error
 
     def cb_sync_trajectory(self, request: Trigger.Request, response: Trigger.Response):
         ok, msg = self.sync_frames()

@@ -109,7 +109,7 @@ class ControlSystemTester(Node):
         self.declare_parameter('output_dir', '/home/dev/ros2_ws/src/control_system/rov_control_system_tester/output')
         self.declare_parameter('output_filename', 'output.txt')
 
-        self.declare_parameter('odom_frame', 'base_link')
+        self.declare_parameter('odom_frame', 'base_link_ref')
         self.declare_parameter('target_frame', 'traj_gen_node')
         self.declare_parameter('reference_frame', 'world_ned')
 

@@ -1,6 +1,6 @@
 rov_state_publisher:
   ros__parameters:
-    robot_name: narval_base
+    robot_name: new_robot
 
 rov_thruster_manager:
   ros__parameters:
@@ -18,7 +18,7 @@ rov_thruster_manager:
     #
     # Name of the topic where the input wrench is published
     #
-    sub_input_wrench_topic_name: joy_wrench_stmp
+    sub_input_wrench_topic_name: "joy_wrench_stmp"
 
     # Output Type:
     #
@@ -34,7 +34,7 @@ rov_thruster_manager:
     #   STONEFISH - normalized values for stonefish
     #
     #  Order of thrusters is sorted alphabetically
-    output_type: 'PWM'
+    output_type: 'FRC'
 
     # Thruster Voltage
     #
@@ -45,9 +45,9 @@ rov_thruster_manager:
     #   16
     #   18
     #   20
-    thruster_voltage: 20
+    thruster_voltage: 16
 
-rov_wrench_system_base:
+rov_passthrough_control_node:
   ros__parameters:
     controller: "ds4"
 
@@ -57,8 +57,8 @@ rov_wrench_system_base:
     send_stamped: True
     frame_id: base_link
 
-    max_force: 5.0
-    max_torque: 2.0
+    max_force: 0.01
+    max_torque: 0.01
 
     equalization_type: "square"
 
@@ -77,6 +77,18 @@ rov_wrench_system_base:
     inv_torque_x: False
     inv_torque_y: False
     inv_torque_z: False
+
+rov_bridge:
+  ros__parameters:
+    ip: "10.42.0.250"
+    port: 55555
+    num_of_thrusters: 8
+    # queue: [6, 2, 4, 0, 7, 3, 5, 1]
+    # queue: [2, 6, 1, 5, 3, 7, 0, 4]
+    # queue: [2, 6, 1, 5, 3, 7, 0, 4]
+    # queue: [2, 6, 0, 4, 3, 7, 1, 5]
+    queue: [0, 1, 2, 3, 4, 5, 6, 7]
+
 
 
 

@@ -27,7 +27,7 @@
   <xacro:property name="MASS" value="11.51"/>
   <xacro:property name="CoG_X" value="0"/>
   <xacro:property name="CoG_Y" value="0"/>
-  <xacro:property name="CoG_Z" value="0.08"/>
+  <xacro:property name="CoG_Z" value="0.072"/>
   <xacro:property name="CoG" value="${CoG_X} ${CoG_Y} ${CoG_Z}"/>
 
   <xacro:macro name='CoG_origin' params="X Y Z rpy" >

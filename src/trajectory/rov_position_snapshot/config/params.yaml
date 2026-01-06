@@ -320,4 +320,4 @@ rov_passthrough_control_node:
 
 rov_position_snapshot:
   ros__parameters:
-    filename: 'robosub_1.json'
+    filename: 'recorded.json'

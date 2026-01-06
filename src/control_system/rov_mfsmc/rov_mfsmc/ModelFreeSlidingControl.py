@@ -120,7 +120,10 @@ class ModelFreeSlidingControl(Node):
         u_2_rot = tf_transformations.euler_from_quaternion(u_2_quat)
         u_2 = np.concatenate((u_2_pos, u_2_rot), axis=None)
 
-        u = u_2 - u_1
+        pos_error = u_2_pos - u_1_pos
+        r_error = self.angle_error(u_2_rot, u_1_rot)
+
+        u = np.concatenate((pos_error, r_error), axis=None)
 
         u = np.diag(self.A * u).copy()
 
@@ -147,6 +150,13 @@ class ModelFreeSlidingControl(Node):
         wrench_msg.wrench.torque.z = -u[3]
 
         self.wrench_pub.publish(wrench_msg)
+
+    def angle_error(self, target, current):
+        target = np.asarray(target)
+        current = np.asarray(current)
+        error = target - current
+        error = (error + np.pi) % (2 * np.pi) - np.pi
+        return error
 
     def cb_sync_trajectory(self, request: Trigger.Request, response: Trigger.Response):
         ok, msg = self.sync_frames()

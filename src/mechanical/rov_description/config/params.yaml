@@ -6,4 +6,4 @@ rov_state_publisher:
     #  - rov_base - rov only with actuators
     #  - bluerov2 - bluerov2
     #  - new_robot
-    robot_name: bluerov2
+    robot_name: new_robot

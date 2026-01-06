@@ -11,14 +11,14 @@ from ament_index_python import get_package_share_directory
 
 def generate_launch_description():
 
-    control_system_share = FindPackageShare('rov_control_system_tester')
+    control_system_tester_share = FindPackageShare('rov_control_system_tester')
     passthrough_share = FindPackageShare('rov_passthrough_control')
 
-    default_config_path = PathJoinSubstitution([control_system_share, 'config', 'params.yaml'])
-    default_rviz_config_path = PathJoinSubstitution([control_system_share, 'rviz', 'tf_basic.rviz'])
+    default_config_path = PathJoinSubstitution([control_system_tester_share, 'config', 'params.yaml'])
+    default_rviz_config_path = PathJoinSubstitution([control_system_tester_share, 'rviz', 'tf_basic.rviz'])
 
     # Define default configuration paths
-    default_config_path = PathJoinSubstitution([control_system_share, 'config', 'params.yaml'])
+    default_config_path = PathJoinSubstitution([control_system_tester_share, 'config', 'params.yaml'])
 
     # Launch arguments
     config_arg = DeclareLaunchArgument(
@@ -46,9 +46,10 @@ def generate_launch_description():
     )
 
     traj_gen_node = Node(
-        package='traj_gen',
-        executable='min_snap_traj_generator',
+        package='traj_gen_pid',
+        executable='traj_gen_pid_node',
         parameters=[LaunchConfiguration('config')],
+        name='trajectory_generator',
         output='screen'
     )
 
@@ -82,8 +83,8 @@ def generate_launch_description():
     )
 
     mfsm_node = Node(
-        package='rov_mfsmc',
-        executable='rov_mfsmc_node',
+        package='rov_pid',
+        executable='rov_pid_node',
         parameters=[LaunchConfiguration('config')],
         output='screen'
     )

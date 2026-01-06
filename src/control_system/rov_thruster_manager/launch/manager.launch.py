@@ -8,7 +8,7 @@ def generate_launch_description():
     # Define package share paths
     thruster_manager_share = FindPackageShare('rov_thruster_manager')
     description_share = FindPackageShare('rov_description')
-    wrench_system_share = FindPackageShare('rov_wrench_system')
+    wrench_system_share = FindPackageShare('rov_passthrough_control')
 
     # Define default configuration paths
     default_config_path = PathJoinSubstitution([thruster_manager_share, 'config', 'params.yaml'])
@@ -51,7 +51,12 @@ def generate_launch_description():
         }.items()
     )
 
-
+    rov_bridge = Node(
+        package='rov_bridge',
+        executable='stm32',
+        parameters=[LaunchConfiguration('config')],
+        name='rov_bridge'
+    )
 
     # Timed actions
     description_timer = TimerAction(period=1.0, actions=[rov_state_publisher_node])
@@ -64,5 +69,6 @@ def generate_launch_description():
         thruster_manager_node,
         description_timer,
         wrench_system_launch,
+        rov_bridge
         # rviz_timer
     ])
