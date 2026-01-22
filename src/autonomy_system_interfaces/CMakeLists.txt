@@ -25,5 +25,6 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "action/SearchGate.action"
   "action/MoveToGate.action"
   "action/HelloWorld.action"
+  "action/NormalAction.action"
 )
 ament_package()

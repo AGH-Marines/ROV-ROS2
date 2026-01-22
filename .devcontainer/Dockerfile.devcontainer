@@ -131,7 +131,7 @@ RUN echo 'source /opt/ros/'$ROS_DISTRO'/setup.bash' >> /home/$USERNAME/.bashrc \
 
 
 COPY ./entrypoint.sh /entrypoint.sh
-
+ENV PYTHONPATH=/opt/ros/humble/lib/python3.10/site-packages:/home/dev/ros2_ws/install
 ENTRYPOINT ["/entrypoint.sh"]
 
 CMD ["bash"]
