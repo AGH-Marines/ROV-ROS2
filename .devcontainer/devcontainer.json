@@ -26,7 +26,8 @@
             "yzhang.markdown-all-in-one",
             "zachflower.uncrustify",
             "ms-python.flake8",
-            "ms-python.isort"
+            "ms-python.isort",
+            "github.vscode-pull-request-github"
           ]
       }
     },
