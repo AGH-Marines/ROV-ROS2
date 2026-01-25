@@ -12,7 +12,7 @@ permissions:
 jobs:
   code-review:
     name: Crush Code Review
-    runs-on: ubuntu-latest
+    runs-on: agh-marines-server
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -32,12 +32,12 @@ jobs:
       - name: Install Crush
         run: |
           echo "Installing Crush CLI..."
-          curl -fsSL https://raw.githubusercontent.com/charmbracelet/crush/main/install.sh | sh
-          crush --version
+          sudo mkdir -p /etc/apt/keyrings
+          curl -fsSL https://repo.charm.sh/apt/gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/charm.gpg
+          echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | sudo tee /etc/apt/sources.list.d/charm.list
+          sudo apt update && sudo apt install crush
 
       - name: Configure Crush with GLM-4.7
-        env:
-          ZAI_API_KEY: ${{ secrets.ZAI_API_KEY }}
         run: |
           echo "Configuring Crush for GLM-4.7..."
           
@@ -54,7 +54,7 @@ jobs:
                 "name": "Z.AI",
                 "base_url": "https://open.bigmodel.cn/api/paas/v4/",
                 "type": "openai-compat",
-                "api_key_env": "ZAI_API_KEY",
+                "api_key_env": ${{ secrets.ZAI_API_KEY }},
                 "models": [
                   {
                     "name": "GLM-4.7",
@@ -84,7 +84,7 @@ jobs:
 
   code-review-comment:
     name: Post Review Summary
-    runs-on: ubuntu-latest
+    runs-on: agh-marines-server
     needs: code-review
     if: always()
     steps:
