@@ -12,6 +12,8 @@ permissions:
 jobs:
   code-review:
     name: Crush Code Review
+    env:
+      ZAI_API_KEY: ${{ secrets.ZAI_API_KEY }}
     runs-on: agh-marines-server
     container: ubuntu:24.04
     steps:
@@ -52,7 +54,7 @@ jobs:
                 "name": "Z.AI",
                 "base_url": "https://open.bigmodel.cn/api/paas/v4/",
                 "type": "openai-compat",
-                "api_key_env": ${{ secrets.ZAI_API_KEY }},
+                "api_key_env": "$ZAI_API_KEY",
                 "models": [
                   {
                     "name": "GLM-4.7",
