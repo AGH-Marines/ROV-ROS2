@@ -66,6 +66,7 @@ jobs:
           }
           EOF
 
+          cat $HOME/.config/crush/crush.json
           echo "Crush configuration created at $HOME/.config/crush/crush.json"
 
       - name: Run Code Review Bot
