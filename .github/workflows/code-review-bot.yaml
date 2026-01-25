@@ -77,7 +77,7 @@ jobs:
           CRUSH_CONFIG_PATH: $HOME/.config/crush/crush.json
           ZAI_API_KEY: ${{ secrets.ZAI_API_KEY }}
         run: |
-          python .github/scripts/code_review_bot.py
+          python3 .github/scripts/code_review_bot.py
         continue-on-error: true
 
   code-review-comment:
