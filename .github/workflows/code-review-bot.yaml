@@ -79,7 +79,7 @@ jobs:
           CRUSH_CONFIG_PATH: $HOME/.config/crush/crush.json
           ZAI_API_KEY: ${{ secrets.ZAI_API_KEY }}
         run: |
-          source /tmp/venv/bin/activate
+          . /tmp/venv/bin/activate
           python .github/scripts/code_review_bot.py
         continue-on-error: true
 
