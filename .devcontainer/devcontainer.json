@@ -35,7 +35,11 @@
     "workspaceMount": "source=${localWorkspaceFolder},target=/home/dev/ros2_ws,type=bind",
     "mounts": [
         "source=/dev,target=/dev,type=bind",
-        "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind"
+        "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind",
+
+        // Mount your local crush.json config file if you want to use third-party model
+        // Example mount
+        // "source=~/.local/share/crush,target=/home/dev/.local/share/crush,type=bind"
     ],
     "runArgs": [
         "--network", "host",
