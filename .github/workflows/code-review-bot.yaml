@@ -23,8 +23,10 @@ jobs:
       - name: Set up Python and dependencies
         run: |
           apt update
-          apt install -y python3 python3-pip
-          python3 -m pip install --upgrade pip
+          apt install -y python3 python3-pip python3-venv
+          python3 -m venv /tmp/venv
+          source /tmp/venv/bin/activate
+          pip install --upgrade pip
           pip install requests
 
       - name: Install Crush
@@ -77,6 +79,7 @@ jobs:
           CRUSH_CONFIG_PATH: $HOME/.config/crush/crush.json
           ZAI_API_KEY: ${{ secrets.ZAI_API_KEY }}
         run: |
+          source /tmp/venv/bin/activate
           python .github/scripts/code_review_bot.py
         continue-on-error: true
 
