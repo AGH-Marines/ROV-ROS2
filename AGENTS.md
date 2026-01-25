@@ -621,3 +621,7 @@ ros2 run tf2_ros tf2_echo source_frame target_frame
 - `.msg`: ROS2 message definitions
 - `.srv`: ROS2 service definitions
 - `.action`: ROS2 action definitions
+
+# Additional suggestions
+
+NEVER add new markdown files with changes status, instead you can update `README.md` file after asking for permission
