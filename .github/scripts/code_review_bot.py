@@ -447,6 +447,9 @@ def main():
     parsed_review = ReviewCommentParser.parse_crush_output(crush_output)
 
     # Post general comment with overall assessment
+    # Save summary to file for GitHub Actions artifact
+    summary_file = os.path.join(os.environ.get("GITHUB_OUTPUT", "/tmp/"), "review_summary.txt")
+    
     if parsed_review["overall"]:
         general_comment = f"""## 🤖 Crush Code Review
 
@@ -468,11 +471,10 @@ def main():
             for pos in parsed_review["positive"]:
                 general_comment += f"- {pos}\n"
 
-        try:
-            pr_handler.create_general_comment(general_comment)
-            print("Posted general review comment.")
-        except Exception as e:
-            print(f"Error posting general comment: {e}", file=sys.stderr)
+        # Save summary to file
+        with open("/tmp/review_summary.md", "w") as f:
+            f.write(general_comment)
+        print(f"Saved review summary to /tmp/review_summary.md")
 
     # Post line-specific comments
     if parsed_review["line_comments"]:
