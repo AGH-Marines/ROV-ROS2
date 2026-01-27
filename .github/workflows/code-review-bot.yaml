@@ -47,22 +47,25 @@ jobs:
           {
             "$schema": "https://charm.land/crush.json",
             "options": {
-              "skills_paths": ["${{ github.workspace }}/.config/crush/skills/skills"]
+              "skills_paths": [
+                "${{ github.workspace }}/.config/crush/skills/skills"
+              ]
             },
             "providers": {
               "zai": {
-                "name": "Z.AI",
-                "base_url": "https://open.bigmodel.cn/api/paas/v4/",
-                "type": "openai-compat",
-                "api_key_env": "$ZAI_API_KEY",
-                "models": [
-                  {
-                    "name": "GLM-4.7",
-                    "id": "glm-4.5",
-                    "context_window": 128000,
-                    "default_max_tokens": 4096
-                  }
-                ]
+                "api_key": "$ZAI_API_KEY"
+              }
+            },
+            "models": {
+              "large": {
+                "model": "glm-4.7",
+                "provider": "zai",
+                "max_tokens": 102400
+              },
+              "small": {
+                "model": "glm-4.7-flash",
+                "provider": "zai",
+                "max_tokens": 65550
               }
             }
           }
