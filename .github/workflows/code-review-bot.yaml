@@ -58,7 +58,7 @@ jobs:
                 "models": [
                   {
                     "name": "GLM-4.7",
-                    "id": "glm-4",
+                    "id": "glm-4.5",
                     "context_window": 128000,
                     "default_max_tokens": 4096
                   }
