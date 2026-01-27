@@ -168,6 +168,8 @@ class CrushReviewer:
         # Build the prompt for Crush using templates
         prompt = self._build_review_prompt(diff, context)
 
+        print(prompt)
+
         try:
             # Build Crush command
             crush_cmd = ["crush", "run", prompt]
