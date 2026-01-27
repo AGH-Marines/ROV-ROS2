@@ -140,7 +140,7 @@ class CrushReviewer:
     :type config_path: str or None
     """
 
-    def __init__(self, project_path: str, template_name: str = "ros2_review", config_path: str = None):
+    def __init__(self, project_path: str, template_name: str = "general_review", config_path: str = None):
         """Initialize Crush reviewer.
 
         :param str project_path: Path to the project directory
