@@ -23,7 +23,8 @@ jobs:
 
       - name: Build devcontainer image
         run: |
-          docker build -f .devcontainer/Dockerfile.devcontainer -t ros2-devcontainer .
+          cd .devcontainer
+          docker build -f Dockerfile.devcontainer -t ros2-devcontainer .
 
       - name: Build ROS2 workspace
         id: build
