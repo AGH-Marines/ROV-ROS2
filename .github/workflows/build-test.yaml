@@ -14,15 +14,12 @@ jobs:
   build:
     name: Build and Validate ROS2 Workspace
     runs-on: agh-marines-server
-    container: ubuntu:24.04
+    container: docker:latest
     env:
       ROS_DISTRO: humble
     steps:
       - name: Checkout repository with submodules
         uses: actions/checkout@v6
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
 
       - name: Build devcontainer image
         run: |
