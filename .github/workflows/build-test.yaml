@@ -14,6 +14,7 @@ jobs:
   build:
     name: Build and Validate ROS2 Workspace
     runs-on: agh-marines-server
+    container: ubuntu:24.04
     env:
       ROS_DISTRO: humble
     steps:
