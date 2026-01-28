@@ -1,0 +1,177 @@
+name: Crush Code Review Bot
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  code-review:
+    name: Crush Code Review
+    env:
+      ZAI_API_KEY: ${{ secrets.ZAI_API_KEY }}
+    runs-on: agh-marines-server
+    container: ubuntu:24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python and dependencies
+        run: |
+          apt update
+          apt install -y python3 python3-pip && rm -rf /var/lib/apt/lists/*
+          pip3 install requests --break-system-packages
+
+      - name: Install Crush
+        run: |
+          echo "Installing Crush CLI..."
+          apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+          mkdir -p /etc/apt/keyrings
+          curl -fsSL https://repo.charm.sh/apt/gpg.key | gpg --dearmor -o /etc/apt/keyrings/charm.gpg
+          echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | tee /etc/apt/sources.list.d/charm.list
+          apt update && apt install -y crush
+
+      - name: Configure Crush with GLM-4.7
+        run: |
+          echo "Configuring Crush for GLM-4.7..."
+          
+          # Create custom crush.json for this workflow
+          mkdir -p $HOME/.config/crush
+          cat > $HOME/.config/crush/crush.json << 'EOF'
+          {
+            "$schema": "https://charm.land/crush.json",
+            "options": {
+              "skills_paths": [
+                "${{ github.workspace }}/.config/crush/skills/skills"
+              ]
+            },
+            "providers": {
+              "zai": {
+                "api_key": "$ZAI_API_KEY"
+              }
+            },
+            "models": {
+              "large": {
+                "model": "glm-4.7",
+                "provider": "zai",
+                "max_tokens": 102400
+              },
+              "small": {
+                "model": "glm-4.7-flash",
+                "provider": "zai",
+                "max_tokens": 65550
+              }
+            }
+          }
+          EOF
+
+          cat $HOME/.config/crush/crush.json
+          echo "Crush configuration created at $HOME/.config/crush/crush.json"
+
+      - name: Run Code Review Bot
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.number }}
+          PROJECT_PATH: ${{ github.workspace }}
+          CRUSH_CONFIG_PATH: $HOME/.config/crush/crush.json
+          ZAI_API_KEY: ${{ secrets.ZAI_API_KEY }}
+        run: |
+          python3 .github/scripts/code_review_bot.py
+        continue-on-error: true
+
+      - name: Upload review summary artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: review-summary
+          path: /tmp/review_summary.md
+          if-no-files-found: ignore
+
+  code-review-comment:
+    name: Post Review Summary
+    runs-on: agh-marines-server
+    container: ubuntu:24.04
+    needs: code-review
+    if: always()
+    steps:
+      - name: Download review summary artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: review-summary
+          path: /tmp/
+
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const reviewCompleted = '${{ needs.code-review.result }}';
+
+            let commentBody = '## 🤖 Crush Code Review Bot Status\n\n';
+            commentBody += `**Status**: ${reviewCompleted}\n\n`;
+
+            // Try to read and include the AI summary
+            try {
+              const summaryPath = '/tmp/review_summary.md';
+              if (fs.existsSync(summaryPath)) {
+                const aiSummary = fs.readFileSync(summaryPath, 'utf8');
+                commentBody += aiSummary + '\n\n';
+              }
+            } catch (error) {
+              console.log('Could not read AI summary:', error.message);
+            }
+
+            if (reviewCompleted === 'success') {
+              if (!commentBody.includes('Overall Assessment')) {
+                commentBody += '✅ Code review completed successfully!\n\n';
+                commentBody += 'Check the comments above for detailed suggestions from Crush.\n\n';
+              }
+            } else if (reviewCompleted === 'failure') {
+              if (!commentBody.includes('Overall Assessment')) {
+                commentBody += '❌ Code review encountered an error.\n\n';
+                commentBody += 'Please check the workflow logs for details.\n\n';
+              }
+            } else {
+              commentBody += '⚠️ Code review was skipped or cancelled.\n\n';
+            }
+
+            commentBody += '---\n\n';
+            commentBody += 'This bot uses Crush AI to analyze your code changes and provide suggestions.\n';
+
+            // Find existing bot comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('Crush Code Review Bot Status')
+            );
+
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: commentBody,
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: commentBody,
+              });
+            }
