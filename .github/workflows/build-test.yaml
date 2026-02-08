@@ -29,6 +29,7 @@ jobs:
       - name: Build ROS2 workspace
         id: build
         run: |
+          mkdir -p ${{ github.workspace }}
           docker run --rm \
             -v ${{ github.workspace }}:/home/dev/ros2_ws \
             ros2-devcontainer \
@@ -53,6 +54,7 @@ jobs:
 
       - name: Run package tests
         run: |
+          mkdir -p ${{ github.workspace }}
           docker run --rm \
             -v ${{ github.workspace }}:/home/dev/ros2_ws \
             ros2-devcontainer \
