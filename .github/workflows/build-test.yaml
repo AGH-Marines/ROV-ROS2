@@ -35,7 +35,7 @@ jobs:
             ros2-devcontainer \
             bash -c "
               source /opt/ros/humble/setup.bash && \
-              colcon build --symlink-install
+              colcon build --symlink-install --event-handlers console_direct+ 2>&1
             " | tee ${{github.workspace}}/build_output.log
 
       - name: Validate build succeeded
@@ -53,7 +53,15 @@ jobs:
         run: |
           echo "### Build Summary" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
-          grep -A 100 "Summary:" ${{ github.workspace }}/build_output.log || tail -n 50 ${{ github.workspace }}/build_output.log || echo "No build output found" >> $GITHUB_STEP_SUMMARY
+          tail -n 50 ${{github.workspace}}/build_output.log | grep -A 100 "Summary:" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload build logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: ${{ github.workspace }}/build_output.log
+          retention-days: 7
 
 
