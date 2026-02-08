@@ -18,8 +18,11 @@ jobs:
     env:
       ROS_DISTRO: humble
     steps:
-      - name: Checkout repository with submodules
+      - name: Checkout repository
         uses: actions/checkout@v6
+
+      - name: Checkout submodules
+        run: git submodule update --init --recursive
 
       - name: Build devcontainer image
         run: |
