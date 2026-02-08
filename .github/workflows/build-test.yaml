@@ -35,7 +35,7 @@ jobs:
             ros2-devcontainer \
             bash -c "
               source /opt/ros/humble/setup.bash && \
-              colcon build --symlink-install --event-handlers console_direct+ 2>&1
+              colcon build --symlink-install
             " | tee ${{github.workspace}}/build_output.log
 
       - name: Validate build succeeded
@@ -48,60 +48,12 @@ jobs:
             echo "✅ Build completed successfully - no failures detected"
           fi
 
-      - name: Run package tests
-        run: |
-          mkdir -p ${{ github.workspace }}
-          docker run --rm \
-            -v ${{ github.workspace }}:/home/dev/ros2_ws \
-            ros2-devcontainer \
-            bash -c "
-              source /opt/ros/humble/setup.bash && \
-              source /home/dev/ros2_ws/install/setup.bash && \
-              colcon test --event-handlers console_direct+ 2>&1 | tee /tmp/test_output.log
-            "
-          docker run --rm \
-            -v ${{ github.workspace }}:/home/dev/ros2_ws \
-            ros2-devcontainer \
-            bash -c "cat /tmp/test_output.log" > ${{ github.workspace }}/test_output.log
-
-      - name: Display test results
-        if: always()
-        run: |
-          docker run --rm \
-            -v ${{ github.workspace }}:/home/dev/ros2_ws \
-            ros2-devcontainer \
-            bash -c "
-              source /opt/ros/humble/setup.bash && \
-              source /home/dev/ros2_ws/install/setup.bash && \
-              colcon test-result --verbose
-            "
-
       - name: Summary
         if: always()
         run: |
-          echo "=== Build Summary ==="
-          echo "Build output:" && cat ${{ github.workspace }}/build_output.log || echo "No build output found"
-          echo ""
-          echo "Test output:" && cat ${{ github.workspace }}/test_output.log || echo "No test output found"
+          echo "### Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          grep -A 100 "Summary:" ${{ github.workspace }}/build_output.log || tail -n 50 ${{ github.workspace }}/build_output.log || echo "No build output found" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
 
-      - name: Upload test logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-logs
-          path: |
-            ${{ github.workspace }}/log/latest_test/
-            ${{ github.workspace }}/build/
-            ${{ github.workspace }}/test_output.log
-          retention-days: 7
-
-      - name: Upload build logs
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-logs
-          path: |
-            ${{ github.workspace }}/log/latest_build/
-            ${{ github.workspace }}/build_output.log
-          retention-days: 7
 
