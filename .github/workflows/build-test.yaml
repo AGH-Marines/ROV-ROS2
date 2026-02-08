@@ -35,12 +35,8 @@ jobs:
             ros2-devcontainer \
             bash -c "
               source /opt/ros/humble/setup.bash && \
-              colcon build --symlink-install --event-handlers console_direct+ 2>&1 | tee /tmp/build_output.log
-            "
-          docker run --rm \
-            -v ${{ github.workspace }}:/home/dev/ros2_ws \
-            ros2-devcontainer \
-            bash -c "cat /tmp/build_output.log" > ${{ github.workspace }}/build_output.log
+              colcon build --symlink-install --event-handlers console_direct+ 2>&1
+            " | tee ${{github.workspace}}/build_output.log
 
       - name: Validate build succeeded
         run: |
