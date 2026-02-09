@@ -1,0 +1,72 @@
+name: Build and Test ROS2 Workspace
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches:
+      - main
+      - master
+      - develop
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build and Validate ROS2 Workspace
+    runs-on: agh-marines-server
+    container: docker:latest
+    env:
+      ROS_DISTRO: humble
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Checkout submodules
+        run: |
+          git config --global --add safe.directory /__w/ROV-ROS2/ROV-ROS2
+          git submodule update --init --recursive
+
+      - name: Build devcontainer image
+        run: |
+          cd .devcontainer
+          docker build -f Dockerfile.devcontainer -t ros2-devcontainer .
+
+      - name: Build ROS2 workspace
+        id: build
+        run: |
+          mkdir -p ${{ github.workspace }}
+          docker run --rm \
+            -v ${{ github.workspace }}:/home/dev/ros2_ws \
+            ros2-devcontainer \
+            bash -c "
+              source /opt/ros/humble/setup.bash && \
+              colcon build --symlink-install --event-handlers console_direct+ 2>&1
+            " | tee ${{github.workspace}}/build_output.log
+
+      - name: Validate build succeeded
+        run: |
+          if grep -i -E "Failed|FAILED" ${{ github.workspace }}/build_output.log; then
+            echo "❌ Build failed - found 'failed' in build output"
+            cat ${{ github.workspace }}/build_output.log
+            exit 1
+          else
+            echo "✅ Build completed successfully - no failures detected"
+          fi
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "### Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          tail -n 50 ${{github.workspace}}/build_output.log | grep -A 100 "Summary:" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload build logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: ${{ github.workspace }}/build_output.log
+          retention-days: 7
+
+
