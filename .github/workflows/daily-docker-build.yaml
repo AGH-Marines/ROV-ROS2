@@ -1,5 +1,8 @@
 name: Daily Docker Build
 
+on:
+  workflow-dispatch
+
 jobs:
   build:
     name: Build and Validate ROS2 Workspace
