@@ -1,12 +1,15 @@
-name: Daily Docker Build
+name: Daily Server Docker Build
 
 on:
+  pull_request:
+    types: [opened, synchronize, reopened]
   schedule:
-    - cron: '30 6 * * *'
+    - cron: "45 6 * * *"
+  workflow_dispatch:
 
 jobs:
   build:
-    name: Build Docker Container Daily
+    name: Build Server Docker Container Daily
     runs-on: agh-marines-server
     container: docker:latest
     steps:
@@ -25,10 +28,10 @@ jobs:
 
       - name: Build devcontainer image
         run: |
-          docker build -f ./docker/Dockerfile -t ros2-daily-build .
+          docker build -f ./docker/Dockerfile.server -t ros2-daily-server-build .
 
       - name: Cleanup built image
         if: always()
         run: |
-          docker rmi ros2-daily-build || true
+          docker rmi ros2-daily-server-build || true
           docker image prune -f
