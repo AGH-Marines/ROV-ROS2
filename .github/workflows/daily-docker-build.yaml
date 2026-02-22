@@ -19,6 +19,11 @@ jobs:
           git config --global --add safe.directory /__w/ROV-ROS2/ROV-ROS2
           git submodule update --init --recursive
 
+      - name: Check
+        run: |
+          git branch
+          ls -l
+
       - name: Build devcontainer image
         run: |
           cd docker
