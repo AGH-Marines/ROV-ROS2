@@ -1,0 +1,24 @@
+name: Daily Docker Build
+
+jobs:
+  build:
+    name: Build and Validate ROS2 Workspace
+    runs-on: agh-marines-server
+    container: docker:latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Checkout submodules
+        run: |
+          git config --global --add safe.directory /__w/ROV-ROS2/ROV-ROS2
+          git submodule update --init --recursive
+
+      - name: Build devcontainer image
+        run: |
+          cd docker
+          docker build -rm -f docker/Dockerfile -t ros2-daily-build .
+
+
+
+
