@@ -22,4 +22,4 @@ jobs:
       - name: Build devcontainer image
         run: |
           cd docker
-          docker build -rm -f docker/Dockerfile -t ros2-daily-build .
+          docker build -f docker/Dockerfile -t ros2-daily-build .
