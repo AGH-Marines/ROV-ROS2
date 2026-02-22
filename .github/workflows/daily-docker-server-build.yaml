@@ -32,7 +32,7 @@ jobs:
 
       - name: Verify NVIDIA GPU support
         run: |
-          docker run --gpus all ros2-daily-server-build nvidia-smi
+          docker run --rm --gpus all ros2-daily-server-build nvidia-smi
 
       - name: Cleanup built image
         if: always()
