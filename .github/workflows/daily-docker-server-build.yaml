@@ -30,6 +30,10 @@ jobs:
         run: |
           docker build -f ./docker/Dockerfile.server -t ros2-daily-server-build .
 
+      - name: Verify NVIDIA GPU support
+        run: |
+          docker run --gpus all ros2-daily-server-build nvidia-smi
+
       - name: Cleanup built image
         if: always()
         run: |
