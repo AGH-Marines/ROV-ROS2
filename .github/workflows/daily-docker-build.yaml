@@ -1,6 +1,8 @@
 name: Daily Docker Build
 
 on:
+  pull_request:
+    types: [opened, synchronize, reopened]
   workflow-dispatch:
 
 jobs:
@@ -21,7 +23,3 @@ jobs:
         run: |
           cd docker
           docker build -rm -f docker/Dockerfile -t ros2-daily-build .
-
-
-
-
