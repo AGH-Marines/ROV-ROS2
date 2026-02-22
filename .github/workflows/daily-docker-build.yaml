@@ -27,3 +27,9 @@ jobs:
       - name: Build devcontainer image
         run: |
           docker build -f ./docker/Dockerfile -t ros2-daily-build .
+
+      - name: Cleanup built image
+        if: always()
+        run: |
+          docker rmi ros2-daily-build || true
+          docker image prune -f
