@@ -1,7 +1,7 @@
 name: Daily Docker Build
 
 on:
-  workflow-dispatch
+  workflow-dispatch:
 
 jobs:
   build:
