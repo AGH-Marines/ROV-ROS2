@@ -17,11 +17,16 @@ def generate_launch_description():
                                         description="File name of configuration"))
 
     ld.add_action(Node(
-        package='ds4_driver',
-        executable='ds4_driver_node.py',
-        output="screen",
+        package='joy',
+        executable='joy_node',
+        name='joy_node',
+        output='screen',
+        parameters=[{
+            'device_id': 0,        # /dev/input/js0
+            'deadzone': 0.05,
+            'autorepeat_rate': 20.0
+        }]
     ))
-
     ld.add_action(Node(
         package="rov_passthrough_control",
         executable='base_node',

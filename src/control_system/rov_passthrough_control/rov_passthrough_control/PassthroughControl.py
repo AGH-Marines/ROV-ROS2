@@ -3,8 +3,10 @@ from std_srvs.srv import Trigger
 
 from ds4_driver_msgs.msg import Status
 from geometry_msgs.msg import Wrench, WrenchStamped
-
+from sensor_msgs.msg import Joy
 import numpy as np
+
+from ds4_driver import logger
 
 
 class PassthroughControl(Node):
@@ -179,6 +181,14 @@ class PassthroughControl(Node):
         self.declare_parameter("ds4_torque_y", "")  # Torque about y-axis (not mapped).
         self.declare_parameter("ds4_torque_z", "")  # Torque about z-axis (not mapped).
 
+        self.declare_parameter("joy_force_x", 1)
+        self.declare_parameter("joy_force_y", 0)
+        self.declare_parameter("joy_force_z", 4)
+
+        self.declare_parameter("joy_torque_x", 3)
+        self.declare_parameter("joy_torque_y", 2)
+        self.declare_parameter("joy_torque_z", 5)
+
         # Whether to inverse input in calculated wrench
         self.declare_parameter('inv_force_x', False)
         self.declare_parameter('inv_force_y', False)
@@ -242,9 +252,22 @@ class PassthroughControl(Node):
             self.joy_torque_z = self.get_parameter("ds4_torque_z").value  # Torque along x-axis. (not mapped by default)
 
         elif self.controller == 'JOY':
-            # TODO: implement 'joy' controller
+            # Subscribe do joy_node
+            self.sub_joy = self.create_subscription(
+                Joy,
+                "joy",
+                self.cb_joy,
+                10
+            )
 
-            self._logger.fatal(f"Controller: {self.controller} not implemented yet")
+            # Mapowanie osi (indeksy z /joy)
+            self.joy_force_x = self.get_parameter("joy_force_x").value
+            self.joy_force_y = self.get_parameter("joy_force_y").value
+            self.joy_force_z = self.get_parameter("joy_force_z").value
+
+            self.joy_torque_x = self.get_parameter("joy_torque_x").value
+            self.joy_torque_y = self.get_parameter("joy_torque_y").value
+            self.joy_torque_z = self.get_parameter("joy_torque_z").value
 
         elif self.controller == 'STATION':
             # TODO: implement 'station' controller
@@ -255,6 +278,59 @@ class PassthroughControl(Node):
             # Wrong controller parameter
             self._logger.error(f"Controller type: {self.controller} is not supported")
             self._logger.error("Use: DS4, JOY or STATION instead")
+
+    def cb_joy(self, msg: Joy):
+
+        now = self.get_clock().now()
+
+        if self.send_stamped:
+            wrench_msg = WrenchStamped()
+            wrench_msg.header.frame_id = self.frame_id
+            wrench_msg.header.stamp = now.to_msg()
+            w = wrench_msg.wrench
+        else:
+            wrench_msg = Wrench()
+            w = wrench_msg
+
+        def get_axis(idx):
+            return msg.axes[idx] if idx < len(msg.axes) else 0.0
+        def get_button(idx):
+            return msg.buttons[idx] if idx < len(msg.buttons) else 0.0
+        # FORCE
+        # self._logger.error(f"bt 11: {get_button(11)}")
+        # self._logger.error(f"bt 10: {get_button(10)}")
+        # self._logger.error(f"bt 9: {get_button(9)}")
+        # self._logger.error(f"bt 8: {get_button(8)}")
+        # self._logger.error(f"bt 2: {get_button(2)}")
+        # self._logger.error(f"bt 1: {get_button(1)}")
+        # self._logger.error(f"bt 0: {get_button(0)}")
+        w.force.x = float(get_axis(self.joy_force_x)) #1
+        w.force.y = float(get_axis(self.joy_force_y)) #0
+        w.force.z = float(get_button(10) - get_button(9)) #4 x(10) - trojk(9)
+
+        # TORQUE
+        w.torque.y = float(get_axis(self.joy_torque_x)) #3
+        w.torque.x = float(get_button(2)-get_button(1)) #2 kwadrat(2)-kolo(1)
+        w.torque.z = float(get_axis(2)) #5 -> 2
+        # self.declare_parameter("joy_force_x", 1)
+        # self.declare_parameter("joy_force_y", 0)
+        # self.declare_parameter("joy_force_z", 4)
+        #
+        # self.declare_parameter("joy_torque_x", 3)
+        # self.declare_parameter("joy_torque_y", 2)
+        # self.declare_parameter("joy_torque_z", 5)
+        # NORMALIZACJA (ta sama co DS4)
+        w = self.__normalize_joy_input(w)
+
+        # przypisanie
+        if self.send_stamped:
+            wrench_msg.wrench = w
+        else:
+            wrench_msg = w
+
+        # PUBLIKACJA
+        self.pub_joy_wrench.publish(wrench_msg)
+
 
     def run(self, request: Trigger.Request, response: Trigger.Response):
         # Get parameters
@@ -307,10 +383,27 @@ class PassthroughControl(Node):
             self.joy_torque_y = self.get_parameter("ds4_torque_y").value  # Torque along x-axis. (not mapped by default)
             self.joy_torque_z = self.get_parameter("ds4_torque_z").value  # Torque along x-axis. (not mapped by default)
 
-        elif self.controller == 'JOY':
-            # TODO: implement 'joy' controller
 
-            self._logger.fatal(f"Controller: {self.controller} not implemented yet")
+        elif self.controller == 'JOY':
+
+            self.sub_joy = self.create_subscription(
+                Joy,
+                "joy",
+                self.cb_joy,
+                10
+            )
+
+            self.joy_force_x = self.get_parameter("joy_force_x").value
+
+            self.joy_force_y = self.get_parameter("joy_force_y").value
+
+            self.joy_force_z = self.get_parameter("joy_force_z").value
+
+            self.joy_torque_x = self.get_parameter("joy_torque_x").value
+
+            self.joy_torque_y = self.get_parameter("joy_torque_y").value
+
+            self.joy_torque_z = self.get_parameter("joy_torque_z").value
 
         elif self.controller == 'STATION':
             # TODO: implement 'station' controller

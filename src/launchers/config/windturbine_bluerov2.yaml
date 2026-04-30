@@ -17,7 +17,7 @@ rov_thruster_manager:
     #
     # Name of the topic where the input wrench is published
     #
-    sub_input_wrench_topic_name: joy_wrench_stmp
+    sub_input_wrench_topic_name: "joy_wrench_stmp"
 
     # Output Type:
     #
@@ -50,7 +50,7 @@ rov_thruster_manager:
 
 rov_passthrough_control_node:
   ros__parameters:
-    controller: "JOY"
+    controller: "ds4"
 
     wrench_topic_name: "joy_wrench"
     wrench_stamped_topic_name: "joy_wrench_stmp"
@@ -62,8 +62,8 @@ rov_passthrough_control_node:
     #
     # Maximum force that can be applied by the controller
     # If given force is higher than calculated by thruster manager, it will be clipped
-    max_force: 20.0 # kg f
-    max_torque: 0.5 # Nm
+    max_force: 25.0 # kg f
+    max_torque: 2.0 # Nm
 
     equalization_type: "square"
 
@@ -84,11 +84,4 @@ rov_passthrough_control_node:
     inv_torque_z: True
 
 
-    joy_force_x: 1
-    joy_force_y: 0
-    joy_force_z: 4
-
-    joy_torque_x: 3
-    joy_torque_y: 2
-    joy_torque_z: 5
 

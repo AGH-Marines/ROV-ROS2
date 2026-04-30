@@ -11,14 +11,12 @@ from ament_index_python import get_package_share_directory
 
 def generate_launch_description():
 
-    mfsmc_share = FindPackageShare('rov_mfsmc')
-    passthrough_share = FindPackageShare('rov_passthrough_control')
-
-    default_config_path = PathJoinSubstitution([mfsmc_share, 'config', 'params.yaml'])
-    default_rviz_config_path = PathJoinSubstitution([mfsmc_share, 'rviz', 'tf_basic.rviz'])
+    launchers_share = FindPackageShare('launchers')
+    wrench_system_share = FindPackageShare('rov_passthrough_control')
 
     # Define default configuration paths
-    default_config_path = PathJoinSubstitution([mfsmc_share, 'config', 'params.yaml'])
+    default_config_path = PathJoinSubstitution([launchers_share, 'config', 'wreckage_bluerov2.yaml'])
+    default_rviz_config_path = PathJoinSubstitution([launchers_share, 'rviz', 'tank_bluerov2_imu.rviz'])
 
     # Launch arguments
     config_arg = DeclareLaunchArgument(
@@ -32,6 +30,7 @@ def generate_launch_description():
         description="Path to the RViz2 configuration file"
     )
 
+    # Nodes and launch inclusions
     thruster_manager_node = Node(
         package='rov_thruster_manager',
         executable="thruster_manager",
@@ -45,32 +44,29 @@ def generate_launch_description():
         parameters=[LaunchConfiguration('config')]
     )
 
-    passthrough_launch = IncludeLaunchDescription(
-        launch_description_source=PathJoinSubstitution([passthrough_share, 'launch', 'base.launch.py']),
+    wrench_system_launch = IncludeLaunchDescription(
+        launch_description_source=PathJoinSubstitution([wrench_system_share, 'launch', 'base.launch.py']),
         launch_arguments={
             "config": LaunchConfiguration('config')
         }.items()
     )
 
-    # traj_gen_node = Node(
-    #     package='traj_gen',
-    #     executable='min_snap_traj_generator',
-    #     parameters=[LaunchConfiguration('config')],
-    #     output='screen'
-    # )
-    #
-    # tf_traj_gen = Node(
-    #     package='tf2_ros',
-    #     executable='static_transform_publisher',
-    #     arguments=["0", "0", "0", "0", "0", "0", "world_ned", "traj_gen"]
-    # )
+    tf_imu = Node(
+        package="tf2_ros",
+        executable="static_transform_publisher",
+        arguments=["0", "0", "0", "0", "0", "0", "base_link", "bluerov2/imu_filter"]
+    )
 
-    robot_localization_node = Node(
-        package='robot_localization',
-        executable='ekf_node',
-        name='ekf_filter_node',
-        parameters=[LaunchConfiguration('config')],
-        output='screen'
+    tf_multibeam = Node(
+        package="tf2_ros",
+        executable="static_transform_publisher",
+        arguments=["0", "0", "0", "0", "0", "0", "base_link", "bluerov2/multibeam"]
+    )
+
+    tf_multibeam = Node(
+        package="tf2_ros",
+        executable="static_transform_publisher",
+        arguments=["0", "0", "0", "0", "0", "0", "base_link", "bluerov2/fls"]
     )
 
     rviz_node = Node(
@@ -80,44 +76,33 @@ def generate_launch_description():
         output='screen'
     )
 
-    mfsm_node = Node(
-        package='rov_mfsmc',
-        executable='rov_mfsmc_node',
-        parameters=[LaunchConfiguration('config')],
-        output='screen'
-    )
-    telep = Node(
-        package='teleop_twist_joy',
-        executable='teleop_node',
-        parameters=[LaunchConfiguration('config')]
-    )
+    # include another launch file
     launch_include = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(get_package_share_directory('stonefish_ros2') + \
-                                      '/launch/stonefish_simulator.launch.py'),
+        PythonLaunchDescriptionSource(
+            get_package_share_directory('stonefish_ros2') + '/launch/stonefish_simulator.launch.py'),
         launch_arguments={
             'simulation_data': get_package_share_directory('rov_stonefish') + '/data/',
-            'scenario_desc': get_package_share_directory('rov_stonefish') + '/scenarios/windturbine_bluerov2.scn',
-            'simulation_rate': '30.0',
-            'window_res_x': '1820',
-            'window_res_y': '980',
+            'scenario_desc': get_package_share_directory('rov_stonefish') + '/scenarios/wreckage_bluerov2.scn',
+            'simulation_rate': '60.0',
+            'window_res_x': '1920',
+            'window_res_y': '1080',
             'rendering_quality': 'low',
         }.items()
     )
 
+    # Timed actions
     description_timer = TimerAction(period=1.0, actions=[rov_state_publisher_node])
     rviz_timer = TimerAction(period=1.0, actions=[rviz_node])
     stonefish_timer = TimerAction(period=2.0, actions=[launch_include])
-    # traj_gen_timer = TimerAction(period=3.0, actions=[traj_gen_node, tf_traj_gen])
+
     return LaunchDescription([
         config_arg,
         rviz_config_arg,
-        robot_localization_node,
-        description_timer,
-        rviz_timer,
         stonefish_timer,
-        # traj_gen_timer,
         thruster_manager_node,
-        passthrough_launch,
-        mfsm_node,
-        telep
+        description_timer,
+        wrench_system_launch,
+        rviz_timer,
+        tf_imu,
+        tf_multibeam
     ])
