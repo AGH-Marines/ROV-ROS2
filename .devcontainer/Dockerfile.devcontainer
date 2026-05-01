@@ -118,6 +118,9 @@ RUN sudo pip3 install ds4drv
 RUN sudo pip3 install osqp
 RUN sudo pip3 install casadi
 
+## Download uard
+RUN sudo pip3 install pyserial
+
 USER ${USERNAME}
 
 USER root

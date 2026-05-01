@@ -26,6 +26,7 @@ setup(
     entry_points={
         'console_scripts': [
             "stm32 = nodes.stm32_node:main"
+            "uard = nodes.uard_node:main"
         ],
     },
 )
