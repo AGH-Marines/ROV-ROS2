@@ -1,0 +1,34 @@
+name: Daily Server Docker Build
+
+on:
+  schedule:
+    - cron: "45 6 * * *"
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Server Docker Container Daily
+    runs-on: agh-marines-server
+    container: docker:latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Checkout submodules
+        run: |
+          git config --global --add safe.directory /__w/ROV-ROS2/ROV-ROS2
+          git submodule update --init --recursive
+
+      - name: Build devcontainer image
+        run: |
+          docker build -f ./docker/Dockerfile.server -t ros2-daily-server-build .
+
+      - name: Verify NVIDIA GPU support
+        run: |
+          docker run --rm --gpus all ros2-daily-server-build nvidia-smi
+
+      - name: Cleanup built image
+        if: always()
+        run: |
+          docker rmi ros2-daily-server-build || true
+          docker image prune -f

@@ -24,3 +24,6 @@
 	path = src/utils/ros2_numpy
 	url = https://github.com/Box-Robotics/ros2_numpy.git
 	branch = humble
+[submodule ".config/crush/skills"]
+	path = .config/crush/skills
+	url = https://github.com/anthropics/skills.git
