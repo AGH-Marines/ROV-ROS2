@@ -89,5 +89,5 @@ class ThrusterBridge(Node):
 
         # dalej masz swój protokół
         data = pack('<BB6f', 2, 24, *data)
-
+        print(msg.data)
         self.send(data)

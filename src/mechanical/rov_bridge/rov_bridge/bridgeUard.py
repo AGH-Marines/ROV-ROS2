@@ -40,7 +40,8 @@ if __name__ == '__main__':
     time.sleep(2)
 
     while True:
-        data = pack('ffffff', 0.5, 0.5, 0.5, 0.5, 0.5, 0.5)
+        data = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+        data = pack('<BB6f', 2, 24, *data)
         bridge.send(data)
         print("Wysłano:", data)
         time.sleep(1)

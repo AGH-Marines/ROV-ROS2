@@ -60,12 +60,6 @@ def generate_launch_description():
     tf_multibeam = Node(
         package="tf2_ros",
         executable="static_transform_publisher",
-        arguments=["0", "0", "0", "0", "0", "0", "base_link", "bluerov2/multibeam"]
-    )
-
-    tf_multibeam = Node(
-        package="tf2_ros",
-        executable="static_transform_publisher",
         arguments=["0", "0", "0", "0", "0", "0", "base_link", "bluerov2/fls"]
     )
 

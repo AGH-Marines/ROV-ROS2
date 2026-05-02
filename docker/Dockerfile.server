@@ -1,4 +1,4 @@
-FROM osrf/ros:humble-desktop-full
+FROM ros_humble_desktop_full_arm
 
 ARG ROS_PACKAGE=ros_base \
     ROS_VERSION=humble
@@ -87,11 +87,11 @@ RUN apt-get update && apt-get install -y \
     libx11-dev x11-apps \
     && rm -rf /var/lib/apt/lists/*
 
-RUN sed -i 's/-lSDL2 /-lSDL2/' /usr/lib/x86_64-linux-gnu/cmake/SDL2/sdl2-config.cmake
+RUN sed -i 's/-lSDL2 /-lSDL2/' /usr/lib/*-linux-gnu/cmake/SDL2/sdl2-config.cmake
 
 RUN git clone --branch agh-marines-branch https://github.com/AGH-Marines/stonefish.git  /home/$USERNAME/stonefish \
     && cd /home/$USERNAME/stonefish \
-    && mkdir build \ 
+    && mkdir build \
     && cd build \
     && cmake .. \
     && make -j$(nproc) \
@@ -107,13 +107,14 @@ RUN chown -R ${USERNAME}:root /home/${USERNAME}/ros2_ws
 RUN sudo pip3 install ds4drv
 RUN sudo pip3 install osqp
 RUN sudo pip3 install casadi
-
+RUN sudo pip3 install pyserial
 USER ${USERNAME}
 
 USER root
 
 COPY  . /home/$USERNAME/ros2_ws/
-
+COPY .devcontainer/entrypoint.sh /entrypoint.sh
+RUN chmod 777 /entrypoint.sh
 WORKDIR /home/$USERNAME/ros2_ws
 
 RUN bash -c "source /opt/ros/$ROS_DISTRO/setup.bash && colcon build --symlink-install && source /home/'$USERNAME'/ros2_ws/install/setup.bash"
