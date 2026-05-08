@@ -11,10 +11,13 @@
 
   <build_depend>geometry_msgs</build_depend>
   <build_depend>ds4_driver_msgs</build_depend>
+  <build_depend>sensor_msgs</build_depend>
 
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>ds4_driver_msgs</exec_depend>
   <exec_depend>ds4_driver</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>joy</exec_depend>
   <exec_depend>launch_ros</exec_depend>
   <exec_depend>python-numpy</exec_depend>
 

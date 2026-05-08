@@ -3,6 +3,7 @@ from std_srvs.srv import Trigger
 
 from ds4_driver_msgs.msg import Status
 from geometry_msgs.msg import Wrench, WrenchStamped
+from sensor_msgs.msg import Joy
 
 import numpy as np
 
@@ -179,6 +180,25 @@ class PassthroughControl(Node):
         self.declare_parameter("ds4_torque_y", "")  # Torque about y-axis (not mapped).
         self.declare_parameter("ds4_torque_z", "")  # Torque about z-axis (not mapped).
 
+        # Axis index mapping for regular joystick (sensor_msgs/Joy) input to control forces (x, y, z).
+        self.declare_parameter("joy_axis_force_x", 1)  # Left stick vertical (forward/back)
+        self.declare_parameter("joy_axis_force_y", 0)  # Left stick horizontal (left/right)
+        self.declare_parameter("joy_axis_force_z", 4)  # Right stick vertical (up/down)
+
+        # Axis index mapping for regular joystick (sensor_msgs/Joy) input to control torques (x, y, z).
+        self.declare_parameter("joy_axis_torque_x", 3)  # Right stick horizontal (roll)
+        self.declare_parameter("joy_axis_torque_y", -1)  # Torque about y-axis (not mapped by default)
+        self.declare_parameter("joy_axis_torque_z", -1)  # Torque about z-axis (not mapped by default)
+
+        # Button index mapping for regular joystick (sensor_msgs/Joy) input for additional torque axes.
+        self.declare_parameter("joy_button_torque_y_pos", -1)  # Button for positive torque about y-axis
+        self.declare_parameter("joy_button_torque_y_neg", -1)  # Button for negative torque about y-axis
+        self.declare_parameter("joy_button_torque_z_pos", 5)  # Button for positive torque about z-axis (e.g. R1)
+        self.declare_parameter("joy_button_torque_z_neg", 4)  # Button for negative torque about z-axis (e.g. L1)
+
+        # Topic name for joy messages
+        self.declare_parameter("joy_topic_name", "joy")
+
         # Whether to inverse input in calculated wrench
         self.declare_parameter('inv_force_x', False)
         self.declare_parameter('inv_force_y', False)
@@ -189,6 +209,7 @@ class PassthroughControl(Node):
         self.declare_parameter('inv_torque_z', False)
 
         self.sub_ds4_driver = None
+        self.sub_joy = None
         self.pub_joy_wrench = None
 
         # Get parameters
@@ -242,9 +263,24 @@ class PassthroughControl(Node):
             self.joy_torque_z = self.get_parameter("ds4_torque_z").value  # Torque along x-axis. (not mapped by default)
 
         elif self.controller == 'JOY':
-            # TODO: implement 'joy' controller
+            joy_topic_name = self.get_parameter("joy_topic_name").value
 
-            self._logger.fatal(f"Controller: {self.controller} not implemented yet")
+            self.sub_joy = self.create_subscription(Joy, 'joy', self.cb_joy, 0)
+
+            self.joy_axis_force_x = self.get_parameter("joy_axis_force_x").value
+            self.joy_axis_force_y = self.get_parameter("joy_axis_force_y").value
+            self.joy_axis_force_z = self.get_parameter("joy_axis_force_z").value
+
+            self.joy_axis_torque_x = self.get_parameter("joy_axis_torque_x").value
+            self.joy_axis_torque_y = self.get_parameter("joy_axis_torque_y").value
+            self.joy_axis_torque_z = self.get_parameter("joy_axis_torque_z").value
+
+            self.joy_button_torque_y_pos = self.get_parameter("joy_button_torque_y_pos").value
+            self.joy_button_torque_y_neg = self.get_parameter("joy_button_torque_y_neg").value
+            self.joy_button_torque_z_pos = self.get_parameter("joy_button_torque_z_pos").value
+            self.joy_button_torque_z_neg = self.get_parameter("joy_button_torque_z_neg").value
+
+            self._logger.info(f"JOY controller initialized, subscribing to '{joy_topic_name}'")
 
         elif self.controller == 'STATION':
             # TODO: implement 'station' controller
@@ -308,9 +344,24 @@ class PassthroughControl(Node):
             self.joy_torque_z = self.get_parameter("ds4_torque_z").value  # Torque along x-axis. (not mapped by default)
 
         elif self.controller == 'JOY':
-            # TODO: implement 'joy' controller
+            joy_topic_name = self.get_parameter("joy_topic_name").value
 
-            self._logger.fatal(f"Controller: {self.controller} not implemented yet")
+            self.sub_joy = self.create_subscription(Joy, joy_topic_name, self.cb_joy, 0)
+
+            self.joy_axis_force_x = self.get_parameter("joy_axis_force_x").value
+            self.joy_axis_force_y = self.get_parameter("joy_axis_force_y").value
+            self.joy_axis_force_z = self.get_parameter("joy_axis_force_z").value
+
+            self.joy_axis_torque_x = self.get_parameter("joy_axis_torque_x").value
+            self.joy_axis_torque_y = self.get_parameter("joy_axis_torque_y").value
+            self.joy_axis_torque_z = self.get_parameter("joy_axis_torque_z").value
+
+            self.joy_button_torque_y_pos = self.get_parameter("joy_button_torque_y_pos").value
+            self.joy_button_torque_y_neg = self.get_parameter("joy_button_torque_y_neg").value
+            self.joy_button_torque_z_pos = self.get_parameter("joy_button_torque_z_pos").value
+            self.joy_button_torque_z_neg = self.get_parameter("joy_button_torque_z_neg").value
+
+            self._logger.info(f"JOY controller initialized, subscribing to '{joy_topic_name}'")
 
         elif self.controller == 'STATION':
             # TODO: implement 'station' controller
@@ -330,18 +381,107 @@ class PassthroughControl(Node):
         return response
 
     def stop(self, request: Trigger.Request, response: Trigger.Response):
-        self.destroy_subscription(self.sub_ds4_driver)
+        if self.sub_ds4_driver is not None:
+            self.destroy_subscription(self.sub_ds4_driver)
+        if self.sub_joy is not None:
+            self.destroy_subscription(self.sub_joy)
         self.destroy_publisher(self.pub_joy_wrench)
         self._is_running = False
         response.success = True
         response.message = 'ok'
 
-        self.get_logger().info(f"Controller {self.controller_name} stopped with status: {response.success}")
+        self.get_logger().info(f"Controller {self.controller} stopped with status: {response.success}")
         return response
 
     @property
     def is_running(self) -> bool:
         return self._is_running
+
+    def _get_joy_axis(self, axes, index):
+        """Safely get axis value from Joy message by index. Returns 0.0 if index is invalid."""
+        if index < 0 or index >= len(axes):
+            return 0.0
+        return float(axes[index])
+
+    def _get_joy_button(self, buttons, index):
+        """Safely get button value from Joy message by index. Returns 0.0 if index is invalid."""
+        if index < 0 or index >= len(buttons):
+            return 0.0
+        return float(buttons[index])
+
+    def _publish_wrench(self, wrench_values):
+        """
+        Publishes a wrench message (Wrench or WrenchStamped) with the given raw values,
+        after normalization.
+
+        :param wrench_values: Tuple of (fx, fy, fz, tx, ty, tz) raw values.
+        """
+        now = self.get_clock().now()
+
+        if self.send_stamped:
+            wrench_msg = WrenchStamped()
+            wrench_msg.header.frame_id = self.frame_id
+            wrench_msg.header.stamp = now.to_msg()
+            w = wrench_msg.wrench
+        else:
+            wrench_msg = Wrench()
+            w = wrench_msg
+
+        w.force.x, w.force.y, w.force.z = wrench_values[:3]
+        w.torque.x, w.torque.y, w.torque.z = wrench_values[3:]
+
+        w = self.__normalize_joy_input(w)
+
+        if self.send_stamped:
+            wrench_msg.wrench.force.x = w.force.x
+            wrench_msg.wrench.force.y = w.force.y
+            wrench_msg.wrench.force.z = w.force.z
+            wrench_msg.wrench.torque.x = w.torque.x
+            wrench_msg.wrench.torque.y = w.torque.y
+            wrench_msg.wrench.torque.z = w.torque.z
+        else:
+            wrench_msg.force.x = w.force.x
+            wrench_msg.force.y = w.force.y
+            wrench_msg.force.z = w.force.z
+            wrench_msg.torque.x = w.torque.x
+            wrench_msg.torque.y = w.torque.y
+            wrench_msg.torque.z = w.torque.z
+
+        self.pub_joy_wrench.publish(wrench_msg)
+
+    def cb_joy(self, msg: Joy):
+        """
+        Callback function for processing joystick input from the `sensor_msgs/Joy` topic.
+
+        This function converts joystick axes and buttons into a `Wrench` or `WrenchStamped` message,
+        normalizes the input, and publishes the resulting message to the configured wrench topic.
+
+        :param Joy msg: The Joy message containing axes and buttons arrays.
+        """
+        try:
+            fx = self._get_joy_axis(msg.axes, self.joy_axis_force_x)
+            fy = self._get_joy_axis(msg.axes, self.joy_axis_force_y)
+            fz = self._get_joy_axis(msg.axes, self.joy_axis_force_z)
+
+            tx = self._get_joy_axis(msg.axes, self.joy_axis_torque_x)
+
+            if self.joy_axis_torque_y >= 0:
+                ty = self._get_joy_axis(msg.axes, self.joy_axis_torque_y)
+            else:
+                ty = self._get_joy_button(msg.buttons, self.joy_button_torque_y_pos) \
+                    - self._get_joy_button(msg.buttons, self.joy_button_torque_y_neg)
+
+            if self.joy_axis_torque_z >= 0:
+                tz = self._get_joy_axis(msg.axes, self.joy_axis_torque_z)
+            else:
+                tz = self._get_joy_button(msg.buttons, self.joy_button_torque_z_pos) \
+                    - self._get_joy_button(msg.buttons, self.joy_button_torque_z_neg)
+
+        except Exception as e:
+            self._logger.error(f"Error reading joy input: {e}")
+            return
+
+        self._publish_wrench((fx, fy, fz, tx, ty, tz))
 
     def cb_ds4_driver(self, msg: Status):
         """
