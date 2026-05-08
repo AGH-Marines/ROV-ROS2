@@ -45,7 +45,7 @@ def generate_launch_description():
     )
 
     wrench_system_launch = IncludeLaunchDescription(
-        launch_description_source=PathJoinSubstitution([wrench_system_share, 'launch', 'base.launch.py']),
+        launch_description_source=PathJoinSubstitution([wrench_system_share, 'launch', 'joy.launch.py']),
         launch_arguments={
             "config": LaunchConfiguration('config')
         }.items()
