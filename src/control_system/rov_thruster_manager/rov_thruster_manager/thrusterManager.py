@@ -46,6 +46,7 @@ from rov_thruster_manager.coefficient import Coefficient
 
 from rov_thruster_manager.logger import Logger
 
+
 class ThrusterManager:
     """
     Handles thruster discovery, management, and force allocation using ROS2.
@@ -121,25 +122,23 @@ class ThrusterManager:
                                         coefficient=self.coefficient,
                                         publish_wrench_type=self.param_output_type
                                         )
-                    
+
                     self.thrusters.append(thruster)
                     check = self.TAMManager.add_thruster(thruster)
 
                     if not check:
                         raise Exception
-                    
-                    
+
+
             except Exception as e:
                 self.__logger.error(f"Could not add thruster: {str(e)}")
                 error_rate += 1
-        
+
         if len(self.TAMManager.get_thrusters()) == 0:
             self.__logger.warning("Did not found any thrusters")
             return
         else:
             self.TAMManager.calculate_TAM()
-            
-
 
     def cb_input_wrench(self, msg: WrenchStamped):
         """
@@ -154,13 +153,13 @@ class ThrusterManager:
 
         if len(self.TAMManager.get_thrusters()) < 6:
             return
-        
+
         thruster_forces = self.TAMManager.solve_wrench(msg)[0]
 
         try:
             if self.pub_output:
                 output: Float64MultiArray = Float64MultiArray()
-                
+
                 if self.param_output_type == 'PWM':
                     for i, thruster in enumerate(self.TAMManager.get_thrusters()):
                         output.data.append(thruster._coefficient.calc('PWM', thruster.force))
@@ -176,4 +175,3 @@ class ThrusterManager:
                 self.pub_output.publish(output)
         except:
             pass
-

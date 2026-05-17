@@ -52,6 +52,13 @@ def generate_launch_description():
         output="screen"
     )
 
+    rov_bridge = Node(
+        package="rov_bridge",
+        executable='uard',
+        parameters=[LaunchConfiguration('config')],
+        output="screen"
+    )
+
     tf_imu = Node(
         package="tf2_ros",
         executable="static_transform_publisher",
@@ -69,12 +76,17 @@ def generate_launch_description():
         executable="static_transform_publisher",
         arguments=["0", "0", "0", "0", "0", "0", "base_link", "bluerov2/fls"]
     )
-
+    rov_state_publisher_node = Node(package='rov_description',
+                                    executable='rov_state_publisher',
+                                    parameters=[LaunchConfiguration('config')])
+    description_timer = TimerAction(period=1.0, actions=[rov_state_publisher_node])
     return LaunchDescription([
         config_arg,
         rviz_config_arg,
+        rov_bridge,
         thruster_manager_node,
         rov_passthrough_control,
         tf_imu,
-        tf_multibeam
+        tf_multibeam,
+        description_timer
     ])

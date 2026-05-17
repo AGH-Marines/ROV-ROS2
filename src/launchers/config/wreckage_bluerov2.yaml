@@ -19,6 +19,8 @@ rov_thruster_manager:
     #
     sub_input_wrench_topic_name: joy_wrench_stmp
 
+
+
     # Output Type:
     #
     #
@@ -33,7 +35,7 @@ rov_thruster_manager:
     #   STONEFISH - normalized values for stonefish
     #
     #  Order of thrusters is sorted alphabetically
-    output_type: 'STONEFISH'
+    output_type: 'PWM'
 
     # Thruster Voltage
     #
