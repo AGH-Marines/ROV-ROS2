@@ -40,18 +40,19 @@ class Bridge:
         self.__socket = socket
 
     def send(self, data):
+        print(self.ip, self.port, self.sock)
         self.sock.sendto(data, (self.ip, self.port))
 
 if __name__ == '__main__':
 
     # bridge = Bridge('192.168.69.100', 25565)
     bridge = Bridge()
-    bridge.ip = '192.168.10.100'
+    bridge.ip = '10.0.0.2'
     bridge.port = 5555
 
     while True:
-        data = pack('ffffff', 0.5, 0.5, 0.5, 0.5, 0.5, 0.5)
-
+        data = pack('ffffffff', 0.5, 0.5, 0.5, 0.5, 0.5, 0.5,0.5,0.5)
+        print(data)
         bridge.send(data=data)
         time.sleep(1)
         
