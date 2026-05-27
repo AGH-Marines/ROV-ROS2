@@ -51,7 +51,19 @@ def generate_launch_description():
             "config": LaunchConfiguration('config')
         }.items()
     )
+    tf_zed_camera = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        arguments=["0.2", "0", "0", "0", "0", "0", "base_link", "zed_camera_link"]
+    )
 
+    # 2. Transformacja: Globalny układ EKF (world_ned) -> Globalny układ ZED (odom)
+    # Nakłada początkowy punkt odniesienia kamery na układ świata.
+    tf_world_to_odom = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        arguments=["0", "0", "0", "0", "0", "0", "world_ned", "odom"]
+    )
     traj_gen_node = Node(
         package='traj_gen',
         executable='min_snap_traj_generator',
@@ -102,7 +114,7 @@ def generate_launch_description():
 
     description_timer = TimerAction(period=1.0, actions=[rov_state_publisher_node])
     rviz_timer = TimerAction(period=1.0, actions=[rviz_node])
-    stonefish_timer = TimerAction(period=2.0, actions=[launch_include])
+    # stonefish_timer = TimerAction(period=2.0, actions=[launch_include])
     traj_gen_timer = TimerAction(period=4.0, actions=[traj_gen_node, tf_traj_gen])
 
     return LaunchDescription([
@@ -111,9 +123,11 @@ def generate_launch_description():
         robot_localization_node,
         description_timer,
         rviz_timer,
-        stonefish_timer,
+        # stonefish_timer,
         traj_gen_timer,
         thruster_manager_node,
         passthrough_launch,
-        mfsm_node
+        mfsm_node,
+        tf_zed_camera,       # <--- DODANE
+        tf_world_to_odom     # <--- DODANE
     ])

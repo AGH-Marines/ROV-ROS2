@@ -27,7 +27,7 @@ setup(
     tests_require=["pytest"],
     entry_points={
         "console_scripts": [
-            "rov_state_publisher = nodes.rov_state_publisher_node:main"
+            "rov_state_publisher = rov_description.rov_state_publisher_node:main"
         ],
     },
 )

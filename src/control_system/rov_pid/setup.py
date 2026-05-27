@@ -30,7 +30,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'rov_pid_node = nodes.n_pid_node:main'
+            'rov_pid_node = rov_pid.n_pid_node:main'
         ],
     },
 )

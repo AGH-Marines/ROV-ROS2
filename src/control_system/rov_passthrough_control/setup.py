@@ -25,7 +25,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            "base_node = nodes.base_node:main"
+            "base_node = rov_passthrough_control.base_node:main",
+            "joy_to_target_tf = rov_passthrough_control.joy_to_target_tf:main"
         ],
     },
 )
