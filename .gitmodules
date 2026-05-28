@@ -27,3 +27,6 @@
 [submodule ".config/crush/skills"]
 	path = .config/crush/skills
 	url = https://github.com/anthropics/skills.git
+[submodule "src/zed-ros2-wrapper"]
+	path = src/zed-ros2-wrapper
+	url = https://github.com/stereolabs/zed-ros2-wrapper.git
