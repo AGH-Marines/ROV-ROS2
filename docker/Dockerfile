@@ -1,4 +1,4 @@
-FROM osrf/ros:humble-desktop-full
+FROM ros_humble_desktop_full_arm
 
 ARG ROS_PACKAGE=ros_base \
     ROS_VERSION=humble
@@ -72,9 +72,10 @@ RUN apt-get update && apt-get install -y \
     git cmake build-essential \
     libopencv-dev libglm-dev libsdl2-dev libfreetype6-dev doxygen \
     libx11-dev x11-apps \
+    zstd \
     && rm -rf /var/lib/apt/lists/*
 
-RUN sed -i 's/-lSDL2 /-lSDL2/' /usr/lib/x86_64-linux-gnu/cmake/SDL2/sdl2-config.cmake
+RUN sed -i 's/-lSDL2 /-lSDL2/' /usr/lib/*-linux-gnu/cmake/SDL2/sdl2-config.cmake
 
 RUN git clone --branch agh-marines-branch https://github.com/AGH-Marines/stonefish.git  /home/$USERNAME/stonefish \
     && cd /home/$USERNAME/stonefish \
@@ -95,18 +96,26 @@ RUN sudo pip3 install ds4drv
 RUN sudo pip3 install osqp
 RUN sudo pip3 install casadi
 
+RUN sudo pip3 install pyserial
+
 USER ${USERNAME}
-
 USER root
-
 COPY  . /home/$USERNAME/ros2_ws/
 
 WORKDIR /home/$USERNAME/ros2_ws
-
-RUN bash -c "source /opt/ros/$ROS_DISTRO/setup.bash && colcon build --symlink-install && source /home/'$USERNAME'/ros2_ws/install/setup.bash"
+RUN sudo apt-get update && sudo apt-get install -y wget zstd
+RUN #bash -c "source /opt/ros/$ROS_DISTRO/setup.bash && colcon build --symlink-install && source /home/'$USERNAME'/ros2_ws/install/setup.bash"
 
 RUN echo 'source /opt/ros/'$ROS_DISTRO'/setup.bash' >> /home/$USERNAME/.bashrc \
-    && echo 'source /home/'$USERNAME'/ros2-aliases/ros2_aliases.bash' >> /home/$USERNAME/.bashrc \
-    && echo 'source /home/'$USERNAME'/ros2_ws/install/setup.bash' >> /home/$USERNAME/.bashrc
-
+    && echo 'source /home/'$USERNAME'/ros2-aliases/ros2_aliases.bash' >> /home/$USERNAME/.bashrc
+RUN echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/$USERNAME \
+    && chmod 0440 /etc/sudoers.d/$USERNAME
+ENV CUDA_HOME=/usr/local/cuda
+#ENV PATH=${CUDA_HOME}/bin:${PATH}
+#ENV LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}
+ENV CUDACXX=/usr/local/cuda/bin/nvcc
+USER ${USERNAME}
+RUN sudo apt update
+RUN rosdep update
+RUN rosdep install --from-paths src --ignore-src -r -y
 CMD ["bash"]

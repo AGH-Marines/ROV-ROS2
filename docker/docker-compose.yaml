@@ -2,19 +2,31 @@ services:
   rov-ros2-server:
 #    build:
 #      context: ..
+#      dockerfile: docker/Dockerfile
 #     rov-ros2-server  dockerfile: docker/Dockerfile.server
 #    platform: linux/arm64
     image: rov-ros2-server:latest
     network_mode: host
     stdin_open: true
+    runtime: nvidia
     tty: true
     privileged: true
     environment:
-      DISPLAY: ${DISPLAY}
+      DISPLAY: ${DISPLAY:-:0}
       NVIDIA_VISIBLE_DEVICES: all
-      NVIDIA_DRIVER_CAPABILITIES: graphics,utility,compute
+      NVIDIA_DRIVER_CAPABILITIES: all
       QT_X11_NO_MITSHM: "1"
+      NVBUF_TRANSFORM_SKIP_EGL: "1"
     volumes:
+      - /usr/local/cuda:/usr/local/cuda:ro
+      - /usr/lib/aarch64-linux-gnu/tegra:/usr/lib/aarch64-linux-gnu/tegra:ro
+      - /usr/local/zed:/usr/local/zed:ro
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - /tmp/argus_socket:/tmp/argus_socket:rw
       - ..:/home/dev/ros2_ws
+      - /home/dev/zed_resources:/usr/local/zed/resources:rw
+      - /dev/bus/usb:/dev/bus/usb
+      - /dev/input:/dev/input
+      - /dev/video0:/dev/video0
+      - /dev/video1:/dev/video1
     entrypoint:  bash
