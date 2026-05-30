@@ -20,7 +20,13 @@ services:
     volumes:
       - /usr/local/cuda:/usr/local/cuda:ro
       - /usr/lib/aarch64-linux-gnu/tegra:/usr/lib/aarch64-linux-gnu/tegra:ro
+      - /usr/local/zed:/usr/local/zed:ro
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
       - /tmp/argus_socket:/tmp/argus_socket:rw
       - ..:/home/dev/ros2_ws
+      - /home/dev/zed_resources:/usr/local/zed/resources:rw
+      - /dev/bus/usb:/dev/bus/usb
+      - /dev/input:/dev/input
+      - /dev/video0:/dev/video0
+      - /dev/video1:/dev/video1
     entrypoint:  bash

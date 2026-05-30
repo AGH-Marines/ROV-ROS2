@@ -46,9 +46,7 @@ RUN apt-get update \
     ros-$ROS_DISTRO-imu-tools \
     ros-$ROS_DISTRO-plotjuggler-ros \
     ros-$ROS_DISTRO-py-trees \
-    ros-$ROS_DISTRO-py-trees-ros \
-    ros-$ROS_DISTRO-nmea-msgs \
-    ros-$ROS_DISTRO-point-cloud-transport
+    ros-$ROS_DISTRO-py-trees-ros
 
 USER root
 
@@ -73,7 +71,8 @@ RUN apt-get update && apt-get install -y \
     python3 python3-pip python3-venv \
     git cmake build-essential \
     libopencv-dev libglm-dev libsdl2-dev libfreetype6-dev doxygen \
-    libx11-dev x11-apps zstd \
+    libx11-dev x11-apps \
+    zstd \
     && rm -rf /var/lib/apt/lists/*
 
 RUN sed -i 's/-lSDL2 /-lSDL2/' /usr/lib/*-linux-gnu/cmake/SDL2/sdl2-config.cmake
@@ -96,38 +95,27 @@ RUN chown -R ${USERNAME}:root /home/${USERNAME}/ros2_ws
 RUN sudo pip3 install ds4drv
 RUN sudo pip3 install osqp
 RUN sudo pip3 install casadi
+
 RUN sudo pip3 install pyserial
 
 USER ${USERNAME}
-
 USER root
-
 COPY  . /home/$USERNAME/ros2_ws/
 
 WORKDIR /home/$USERNAME/ros2_ws
-RUN sudo apt install zstd
-
-# Instalujemy wget i zstd
 RUN sudo apt-get update && sudo apt-get install -y wget zstd
+RUN #bash -c "source /opt/ros/$ROS_DISTRO/setup.bash && colcon build --symlink-install && source /home/'$USERNAME'/ros2_ws/install/setup.bash"
 
-# Pobieramy właściwy instalator SDK bezpośrednio w Dockerze, uruchamiamy go i usuwamy plik instalacyjny (aby oszczędzić miejsce)
-RUN wget https://download.stereolabs.com/zedsdk/5.1/l4t36.3/jetsons -O ZED_SDK_Tegra_L4T36.3_v5.3.0.zstd.run && \
-    chmod +x ZED_SDK_Tegra_L4T36.3_v5.3.0.zstd.run && \
-    ./ZED_SDK_Tegra_L4T36.3_v5.3.0.zstd.run -- silent && \
-    rm ZED_SDK_Tegra_L4T36.3_v5.3.0.zstd.run
-
-RUN git clone https://github.com/kimushun1101/ros2-aliases.git /home/dev/ros2-aliases
-COPY .devcontainer/ros2aliases.env /home/dev/ros2-aliases/.env
+RUN echo 'source /opt/ros/'$ROS_DISTRO'/setup.bash' >> /home/$USERNAME/.bashrc \
+    && echo 'source /home/'$USERNAME'/ros2-aliases/ros2_aliases.bash' >> /home/$USERNAME/.bashrc
+RUN echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/$USERNAME \
+    && chmod 0440 /etc/sudoers.d/$USERNAME
 ENV CUDA_HOME=/usr/local/cuda
-ENV PATH=${CUDA_HOME}/bin:${PATH}
-ENV LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}
+#ENV PATH=${CUDA_HOME}/bin:${PATH}
+#ENV LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}
 ENV CUDACXX=/usr/local/cuda/bin/nvcc
-
+USER ${USERNAME}
+RUN sudo apt update
+RUN rosdep update
 RUN rosdep install --from-paths src --ignore-src -r -y
-#RUN bash -c "source /opt/ros/$ROS_DISTRO/setup.bash && colcon build --symlink-install && source /home/'$USERNAME'/ros2_ws/install/setup.bash"
-
-#RUN #echo 'source /opt/ros/'$ROS_DISTRO'/setup.bash' >> /home/$USERNAME/.bashrc \
-#    && echo 'source /home/'$USERNAME'/ros2-aliases/ros2_aliases.bash' >> /home/$USERNAME/.bashrc \
-#    && echo 'source /home/'$USERNAME'/ros2_ws/install/setup.bash' >> /home/$USERNAME/.bashrc
-
 CMD ["bash"]

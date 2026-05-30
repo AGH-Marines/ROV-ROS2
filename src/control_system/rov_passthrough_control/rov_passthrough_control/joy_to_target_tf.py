@@ -67,16 +67,16 @@ class JoyToTargetTF(Node):
         t.header.frame_id = self.parent_frame  # Czyli teraz 'base_link'
         t.child_frame_id = self.target_frame  # 'traj_gen_node'
 
-        t.transform.translation.x = target_x
-        t.transform.translation.y = target_y
-        t.transform.translation.z = target_z
+        t.transform.translation.x = 0.0
+        t.transform.translation.y = 0.0
+        t.transform.translation.z = 0.0
 
         # Obrót z kwaternionów (tylko odchylenie Yaw na prawym drążku)
         quat = tf_transformations.quaternion_from_euler(0.0, 0.0, target_yaw)
-        t.transform.rotation.x = quat[0]
-        t.transform.rotation.y = quat[1]
-        t.transform.rotation.z = quat[2]
-        t.transform.rotation.w = quat[3]
+        t.transform.rotation.x = 0.0
+        t.transform.rotation.y = 0.0
+        t.transform.rotation.z = 0.0
+        t.transform.rotation.w = 1.0
 
         self.tf_broadcaster.sendTransform(t)
 
