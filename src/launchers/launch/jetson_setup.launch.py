@@ -54,7 +54,7 @@ def generate_launch_description():
 
     rov_bridge = Node(
         package="rov_bridge",
-        executable='uard',
+        executable='stm32',
         parameters=[LaunchConfiguration('config')],
         output="screen"
     )
@@ -79,11 +79,11 @@ def generate_launch_description():
     rov_state_publisher_node = Node(package='rov_description',
                                     executable='rov_state_publisher',
                                     parameters=[LaunchConfiguration('config')])
-    description_timer = TimerAction(period=1.0, actions=[rov_state_publisher_node])
+    description_timer = TimerAction(period=5.0, actions=[rov_state_publisher_node])
     return LaunchDescription([
         config_arg,
         rviz_config_arg,
-        rov_bridge,
+        # rov_bridge,
         thruster_manager_node,
         rov_passthrough_control,
         tf_imu,

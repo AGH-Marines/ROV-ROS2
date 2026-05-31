@@ -306,12 +306,12 @@ class PassthroughControl(Node):
         # self._logger.error(f"bt 0: {get_button(0)}")
         w.force.x = float(get_axis(self.joy_force_x)) #1
         w.force.y = float(get_axis(self.joy_force_y)) #0
-        w.force.z = float(get_button(10) - get_button(9)) #4 x(10) - trojk(9)
+        w.force.z = float(get_button(0) - get_button(2)) #4 x(10) - trojk(9)
 
         # TORQUE
         w.torque.y = float(get_axis(self.joy_torque_x)) #3
-        w.torque.x = float(get_button(2)-get_button(1)) #2 kwadrat(2)-kolo(1)
-        w.torque.z = float(get_axis(2)) #5 -> 2
+        w.torque.x = float(get_button(4)-get_button(5)) #2 kwadrat(2)-kolo(1)
+        w.torque.z = float(get_axis(4)) #5 -> 2
         # self.declare_parameter("joy_force_x", 1)
         # self.declare_parameter("joy_force_y", 0)
         # self.declare_parameter("joy_force_z", 4)

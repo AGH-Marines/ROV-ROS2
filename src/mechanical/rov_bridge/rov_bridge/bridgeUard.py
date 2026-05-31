@@ -6,7 +6,7 @@ import serial
 class Bridge:
     def __init__(self):
         self.__port = None
-        self.__baudrate = 115200
+        self.__baudrate = 578000
         self.__serial = None
 
     @property
@@ -41,7 +41,7 @@ if __name__ == '__main__':
 
     while True:
         data = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
-        data = pack('<BB6f', 2, 24, *data)
+        data = pack('<BB6f', 2, 32, *data)
         bridge.send(data)
         print("Wysłano:", data)
         time.sleep(1)

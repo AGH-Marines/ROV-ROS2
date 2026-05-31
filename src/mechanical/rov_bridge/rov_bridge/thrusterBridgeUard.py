@@ -19,10 +19,10 @@ class ThrusterBridge(Node):
 
         # 🔧 UART zamiast IP
         self.declare_parameter('serial_port', '/dev/ttyTHS1')
-        self.declare_parameter('baudrate', 115200)
+        self.declare_parameter('baudrate', 578000)
 
         self.declare_parameter('num_of_thrusters', 8)
-        self.declare_parameter('queue', [x for x in range(self.num_of_thrusters)])
+        self.declare_parameter('queue',[5,1,3,7,6,2,4,8])
         self.declare_parameter('input_type', 'PWM')
         self.declare_parameter('input_topic', 'thrusters/PWM')
 
@@ -81,7 +81,8 @@ class ThrusterBridge(Node):
     def rearrange(self, input_array: list):
         data = []
         for i in self.queue:
-            v = (input_array[i] - 1550) / 450 * 0.5
+            
+            v = (input_array[i-1] - 775) / 225 * 0.5
             if v < -0.4:
                 v = -0.4
             if v > 0.4:

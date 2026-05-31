@@ -16,11 +16,11 @@ class ThrusterBridge(Bridge, Node):
         Bridge.__init__(self=self)
         Node.__init__(self=self, node_name="thruster_bridge")
 
-        self.__package_data_type = '<BB6f'
+        self.__package_data_type = '<BB8f'
 
-        self.declare_parameter('ip', "192.168.10.100")
-        self.declare_parameter('port', 55555)
-        self.declare_parameter('num_of_thrusters', 6)
+        self.declare_parameter('ip', "10.0.0.2")
+        self.declare_parameter('port', 5555)
+        self.declare_parameter('num_of_thrusters', 8)
         self.declare_parameter('queue', [x for x in range(self.num_of_thrusters)])
         self.declare_parameter('input_type', 'PWM' )
         self.declare_parameter('input_topic', 'thrusters/PWM')
@@ -98,6 +98,6 @@ class ThrusterBridge(Bridge, Node):
     def cb_input(self, msg: Float64MultiArray):
         
         data = self.rearrange(msg.data)
-        data = pack(self.package_data_type, 2, 24,*data)
+        data = pack(self.package_data_type, 2, 34,*data)
         
         self.send(data=data)

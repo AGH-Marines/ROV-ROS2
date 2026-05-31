@@ -107,32 +107,35 @@ class ThrusterManager:
         transforms = msg.transforms
 
         error_rate = 0
-
+        thrusters_log = []
         for i in range(len(transforms)):
-            try:
-                transform = transforms[i]
+            # try:
+            transform = transforms[i]
 
-                if self.param_thruster_prefix in transform.child_frame_id:
+            if self.param_thruster_prefix in transform.child_frame_id:
 
-                    thruster = Thruster(msg=transform,
-                                        logger=self.__node.get_logger(),
-                                        node=self.__node,
-                                        pub_wrench_name=self.param_thruster_wrench_publisher_name,
-                                        thruster_force_axis=self.param_thruster_force_axis,
-                                        coefficient=self.coefficient,
-                                        publish_wrench_type=self.param_output_type
-                                        )
-
-                    self.thrusters.append(thruster)
-                    check = self.TAMManager.add_thruster(thruster)
-
-                    if not check:
-                        raise Exception
+                thruster = Thruster(msg=transform,
+                                    logger=self.__node.get_logger(),
+                                    node=self.__node,
+                                    pub_wrench_name=self.param_thruster_wrench_publisher_name,
+                                    thruster_force_axis=self.param_thruster_force_axis,
+                                    coefficient=self.coefficient,
+                                    publish_wrench_type=self.param_output_type
+                                    )
+                thrusters_log.append(str(thruster))
+                self.thrusters.append(thruster)
+                check = self.TAMManager.add_thruster(thruster)
 
 
-            except Exception as e:
-                self.__logger.error(f"Could not add thruster: {str(e)}")
-                error_rate += 1
+                if not check:
+                    raise Exception
+
+
+            # except Exception as e:
+            #     self.__logger.error(f"Could not add thruster: {str(e)}")
+            #     error_rate += 1
+        with open("thrusters", "w") as f:
+            f.write("\n".join(thrusters_log))
 
         if len(self.TAMManager.get_thrusters()) == 0:
             self.__logger.warning("Did not found any thrusters")
@@ -162,7 +165,7 @@ class ThrusterManager:
 
                 if self.param_output_type == 'PWM':
                     for i, thruster in enumerate(self.TAMManager.get_thrusters()):
-                        output.data.append(thruster._coefficient.calc('PWM', thruster.force))
+                        output.data.append(thruster._coefficient.calc('PWM', thruster.force)*0.5)
                 elif self.param_output_type == 'RPM':
                     for i, thruster in enumerate(self.TAMManager.get_thrusters()):
                         output.data.append(thruster._coefficient.calc('RPM', thruster.force))
