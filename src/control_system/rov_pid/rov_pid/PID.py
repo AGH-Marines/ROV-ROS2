@@ -1,3 +1,5 @@
+import math
+
 from rclpy.node import Node
 from rclpy.time import Time
 from std_srvs.srv import Trigger
@@ -39,9 +41,9 @@ class PID(Node):
         self.integral = np.zeros(6)
         self.prev_error = np.zeros(6)
 
-        self.kp = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]#[4.0, 4.0, 7.5, 0.5, 0.0, 0.0]
-        self.ki = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]#[0.1, 0.1, 0.05, 0.01, 0.0, 0.0]
-        self.kd = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]#[0.5, 0.5, 0.5, 0.01, 0.0, 0.0]
+        self.kp = [4.0, 4.0, 7.5, 0.1, 0.1, 0.1]#[4.0, 4.0, 7.5, 0.5, 0.0, 0.0]
+        self.ki = [0.1, 0.1, 0.05, 0.001, 0.001, 0.001]#[0.1, 0.1, 0.05, 0.01, 0.0, 0.0]
+        self.kd = [0.5, 0.5, 0.5, 0.05, 0.05, 0.05]#[0.5, 0.5, 0.5, 0.01, 0.0, 0.0]
         self.kp *= np.eye(6)
         self.ki *= np.eye(6)
         self.kd *= np.eye(6)
@@ -86,46 +88,53 @@ class PID(Node):
 
         dt = 1 / self.hz
 
-        u_1 = rnp.msgify(Pose, self.des_pos)
-        u_1_pos = rnp.numpify(u_1.position)
-        u_1_quat = rnp.numpify(u_1.orientation)
-        u_1_quat = u_1_quat[..., (1, 2, 3, 0)]
-        u_1_rot = tf_transformations.euler_from_quaternion(u_1_quat)
-        u_1 = np.concatenate((u_1_pos, u_1_rot), axis=None)
+        try:
+            # Pobieramy transformację bezpośrednio: z odom_frame (base_link) do target_frame
+            t = self.tf_buffer.lookup_transform(self.odom_frame, self.target_frame, Time())
 
-        u_2 = rnp.msgify(Pose, self.pos)
-        u_2_pos = rnp.numpify(u_2.position)
-        u_2_quat = rnp.numpify(u_2.orientation)
-        u_2_quat = u_2_quat[..., (1, 2, 3, 0)]
-        u_2_rot = tf_transformations.euler_from_quaternion(u_2_quat)
-        u_2 = np.concatenate((u_2_pos, u_2_rot), axis=None)
+            # rnp.numpify zwraca macierz transformacji homogenicznej 4x4
+            T = rnp.numpify(t.transform)
 
-        error = u_2 - u_1
+            # Wyciągamy translację (pozycja X, Y, Z celu w układzie robota)
+            # To jest bezpośrednio nasz błąd translacji!
+            error_pos = T[:3, 3]
 
-        # P_out = np.diag(self.kp * error).copy()
+            # Wyciągamy rotację i zamieniamy kwaternion na kąty Eulera
+            # Najbezpieczniej bezpośrednio z macierzy rotacji 3x3 lub kwaternionu z wiadomości:
+            quat = [t.transform.rotation.x, t.transform.rotation.y, t.transform.rotation.z, t.transform.rotation.w]
+            error_rot = np.array(tf_transformations.euler_from_quaternion(quat))
 
+            # Łączymy w jeden wektor błędu [X, Y, Z, Roll, Pitch, Yaw]
+            error = np.concatenate((error_pos, error_rot), axis=None)
+
+        except Exception as e:
+            self.get_logger().error(f"Problem z pobraniem TF: {e}")
+            return
+
+        # Normalizacja kątów dla rotacji (indeksy 3, 4, 5)
+        for i in range(3, 6):
+            error[i] = (error[i] + np.pi) % (2 * np.pi) - np.pi
+        error[2]+=0.1
+        error[3]+= math.pi/2
+        # Obliczenia PID (skoro error to Robot->Target, to znak jest już poprawny!)
         self.integral += error * dt
-        # I_out = np.diag(self.ki * self.integral).copy()
-
         derivative = (error - self.prev_error) / dt
-        # D_out = np.diag(self.kd * derivative).copy()
-        P_out = self.kp @ error
-        I_out = self.ki @ self.integral
-        D_out = self.kd @ derivative
-        out = P_out + I_out + D_out
 
+        out = (self.kp @ error) + (self.ki @ self.integral) + (self.kd @ derivative)
+
+        # Budowanie wiadomości Wrench
         wrench_msg = WrenchStamped()
         wrench_msg.header.stamp = self.get_clock().now().to_msg()
-        wrench_msg.header.frame_id = self.odom_frame
+        wrench_msg.header.frame_id = self.odom_frame  # 'base_link'
+
         wrench_msg.wrench.force.x = float(out[0])
-        wrench_msg.wrench.force.y = float(-out[1])
+        wrench_msg.wrench.force.y = float(out[1])
         wrench_msg.wrench.force.z = float(out[2])
-        wrench_msg.wrench.torque.x = float(-out[5])
-        wrench_msg.wrench.torque.y = float(-out[4])
-        wrench_msg.wrench.torque.z = float(-out[3])
+        wrench_msg.wrench.torque.x = float(out[3])
+        wrench_msg.wrench.torque.y = float(out[4])
+        wrench_msg.wrench.torque.z = float(out[5])
 
         self.wrench_pub.publish(wrench_msg)
-
         self.prev_error = error.copy()
 
     def cb_sync_trajectory(self, request: Trigger.Request, response: Trigger.Response):
