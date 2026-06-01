@@ -1,0 +1,8 @@
+Joint: t200_link_t1; Frame: base_link; Translation: {'x': 0.1355, 'y': 0.1, 'z': 0.007500000000000007}
+Joint: t200_link_t2; Frame: base_link; Translation: {'x': 0.1355, 'y': -0.1, 'z': 0.007500000000000007}
+Joint: t200_link_t3; Frame: base_link; Translation: {'x': -0.1475, 'y': 0.1, 'z': 0.007500000000000007}
+Joint: t200_link_t4; Frame: base_link; Translation: {'x': -0.1475, 'y': -0.1, 'z': 0.007500000000000007}
+Joint: t200_link_t5; Frame: base_link; Translation: {'x': 0.12, 'y': 0.218, 'z': 0.08}
+Joint: t200_link_t6; Frame: base_link; Translation: {'x': 0.12, 'y': -0.218, 'z': 0.08}
+Joint: t200_link_t7; Frame: base_link; Translation: {'x': -0.12, 'y': 0.218, 'z': 0.08}
+Joint: t200_link_t8; Frame: base_link; Translation: {'x': -0.12, 'y': -0.218, 'z': 0.08}

@@ -121,13 +121,13 @@ def generate_launch_description():
     # )
 
     # # Wizualizacja w RViz2
-    # rviz_node = Node(
-    #     package='rviz2',
-    #     executable='rviz2',
-    #     name='rviz2',
-    #     arguments=['-d', LaunchConfiguration('rviz_config')],
-    #     output='screen'
-    # )
+    rviz_node = Node(
+        package='rviz2',
+        executable='rviz2',
+        name='rviz2',
+        arguments=['-d', LaunchConfiguration('rviz_config')],
+        output='screen'
+    )
 
     # tf_zed = Node(
     #     package="tf2_ros",
@@ -146,12 +146,12 @@ def generate_launch_description():
         # thruster_manager_node,
         # rov_bridge,
         # zed_camera,
-        joy_to_target_tf_node,
+        # joy_to_target_tf_node,
         # joy_node,
         # tf_zed,
         # tf_traj_gen,  # Usunąłem stąd tf_zed, ponieważ 'base_link' jest teraz obsługiwany bezpośrednio przez wrapper ZEDa
         # TimerAction(period=2.0, actions=[   # Zwiększyłem delikatnie opóźnienie, żeby dać Jetsonowi czas na inicjalizację GPU dla ZEDa
         #     rov_state_publisher_node,
-        #     # rviz_node
+            rviz_node
         # ])
     ])
