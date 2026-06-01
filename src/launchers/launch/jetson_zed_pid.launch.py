@@ -144,7 +144,7 @@ def generate_launch_description():
         ekf_node,
         pid_node,
         thruster_manager_node,
-        # rov_bridge,
+        rov_bridge,
         zed_camera,
         joy_to_target_tf_node,
         # joy_node,
