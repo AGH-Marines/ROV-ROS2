@@ -138,9 +138,11 @@ class ThrusterManager:
             f.write("\n".join(thrusters_log))
 
         if len(self.TAMManager.get_thrusters()) == 0:
-            self.__logger.warning("Did not found any thrusters")
+            print("Did not found any thrusters")
             return
         else:
+            with open("thrusters", "w") as f:
+                f.write("\n".join(thrusters_log))
             self.TAMManager.calculate_TAM()
 
     def cb_input_wrench(self, msg: WrenchStamped):

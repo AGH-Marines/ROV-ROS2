@@ -25,8 +25,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            "stm32 = nodes.stm32_node:main",
-            "uard = nodes.uard_node:main"
+            "stm32 = rov_bridge.stm32_node:main",
+            "uard = rov_bridge.uard_node:main"
         ],
     },
 )

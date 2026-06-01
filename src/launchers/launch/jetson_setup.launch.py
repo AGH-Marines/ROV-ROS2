@@ -52,12 +52,12 @@ def generate_launch_description():
         output="screen"
     )
 
-    rov_bridge = Node(
-        package="rov_bridge",
-        executable='stm32',
-        parameters=[LaunchConfiguration('config')],
-        output="screen"
-    )
+#    rov_bridge = Node(
+#        package="rov_bridge",
+#        executable='uard',
+#        parameters=[LaunchConfiguration('config')],
+#        output="screen"
+#    )
 
     tf_imu = Node(
         package="tf2_ros",
@@ -83,7 +83,7 @@ def generate_launch_description():
     return LaunchDescription([
         config_arg,
         rviz_config_arg,
-        # rov_bridge,
+ #       rov_bridge,
         thruster_manager_node,
         rov_passthrough_control,
         tf_imu,

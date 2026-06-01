@@ -12,7 +12,7 @@ rov_thruster_manager:
     thruster_force_axis: 'x'
 
     # deprecated
-    thruster_wrench_publisher_name: n_thruster_wrench
+    thruster_wrench_publisher_name: calculated_Wrench
 
     # Sub Input Wrench Topic Name
     #

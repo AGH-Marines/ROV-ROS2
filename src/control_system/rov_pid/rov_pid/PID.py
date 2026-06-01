@@ -39,9 +39,9 @@ class PID(Node):
         self.integral = np.zeros(6)
         self.prev_error = np.zeros(6)
 
-        self.kp = [4.0, 4.0, 7.5, 0.5, 0.0, 0.0]
-        self.ki = [0.1, 0.1, 0.05, 0.01, 0.0, 0.0]
-        self.kd = [0.5, 0.5, 0.5, 0.01, 0.0, 0.0]
+        self.kp = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]#[4.0, 4.0, 7.5, 0.5, 0.0, 0.0]
+        self.ki = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]#[0.1, 0.1, 0.05, 0.01, 0.0, 0.0]
+        self.kd = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]#[0.5, 0.5, 0.5, 0.01, 0.0, 0.0]
         self.kp *= np.eye(6)
         self.ki *= np.eye(6)
         self.kd *= np.eye(6)
@@ -102,14 +102,16 @@ class PID(Node):
 
         error = u_2 - u_1
 
-        P_out = np.diag(self.kp * error).copy()
+        # P_out = np.diag(self.kp * error).copy()
 
         self.integral += error * dt
-        I_out = np.diag(self.ki * self.integral).copy()
+        # I_out = np.diag(self.ki * self.integral).copy()
 
         derivative = (error - self.prev_error) / dt
-        D_out = np.diag(self.kd * derivative).copy()
-
+        # D_out = np.diag(self.kd * derivative).copy()
+        P_out = self.kp @ error
+        I_out = self.ki @ self.integral
+        D_out = self.kd @ derivative
         out = P_out + I_out + D_out
 
         wrench_msg = WrenchStamped()
@@ -123,6 +125,8 @@ class PID(Node):
         wrench_msg.wrench.torque.z = float(-out[3])
 
         self.wrench_pub.publish(wrench_msg)
+
+        self.prev_error = error.copy()
 
     def cb_sync_trajectory(self, request: Trigger.Request, response: Trigger.Response):
         ok, msg = self.sync_frames()

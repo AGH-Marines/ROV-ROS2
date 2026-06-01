@@ -15,7 +15,7 @@ class ThrusterBridge(Node):
     def __init__(self):
         super().__init__("thruster_bridge")
 
-        self.__package_data_type = '<BB6f'
+        self.__package_data_type = '<BB8f'
 
         # 🔧 UART zamiast IP
         self.declare_parameter('serial_port', '/dev/ttyTHS1')
@@ -27,11 +27,11 @@ class ThrusterBridge(Node):
         self.declare_parameter('input_topic', 'thrusters/PWM')
 
         # 🔧 init UART
-        # self.ser = serial.Serial(
-        #     port=self.serial_port,
-        #     baudrate=self.baudrate,
-        #     timeout=1
-        # )
+        self.ser = serial.Serial(
+            port=self.serial_port,
+            baudrate=self.baudrate,
+            timeout=1
+        )
 
         self.create_subscription(
             Float64MultiArray,
@@ -81,7 +81,7 @@ class ThrusterBridge(Node):
     def rearrange(self, input_array: list):
         data = []
         for i in self.queue:
-            
+
             v = (input_array[i-1] - 775) / 225 * 0.5
             if v < -0.4:
                 v = -0.4
@@ -96,4 +96,4 @@ class ThrusterBridge(Node):
         # dalej masz swój protokół
         print(data)
         data = pack('<BB8f', 2, 32, *data)
-        # self.send(data)
+        self.send(data)
