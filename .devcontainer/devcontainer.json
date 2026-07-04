@@ -43,7 +43,7 @@
     ],
     "runArgs": [
         "--network", "host",
-        "--device-cgroup-rule", "c *:* rmw",
+        "--device-cgroup-rule='c *:* rmw'",
         "--cap-add=SYS_PTRACE",
         "--security-opt=seccomp:unconfined",
 		"--security-opt=apparmor:unconfined",
