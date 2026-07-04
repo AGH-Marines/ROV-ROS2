@@ -1,0 +1,15 @@
+stabilize_on_position_action_node:
+  ros__parameters:
+    position_stabilization: [0.0, 0.0, 0.0]
+    rotation_stabilization: [0.0, 0.0, 0.0]
+    near_time: 5.0
+    near_dist: 0.07
+
+
+stabilize_on_position_action_2_node:
+  ros__parameters:
+    action_name: "stabilize_2"
+    position_stabilization: [3.0, 2.0, -2.0]
+    rotation_stabilization: [0.0, 0.0, 0.0]
+    near_time: 255.0
+    near_dist: 0.07

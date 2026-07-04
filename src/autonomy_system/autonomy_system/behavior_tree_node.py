@@ -1,4 +1,5 @@
 import time
+from typing import Optional
 
 import py_trees
 import py_trees_ros
@@ -6,7 +7,8 @@ import rclpy
 from autonomy_system_interfaces.action import (
     SearchGate,
     MoveToGate,
-    HelloWorld
+    HelloWorld,
+    NormalAction
 )
 from rclpy.action import ActionClient
 from rclpy.node import Node
@@ -20,7 +22,7 @@ class ActionBehaviour(py_trees.behaviour.Behaviour):
             node: Node,
             action_type,
             action_name: str,
-            timeout_sec: float = 30.0,
+            timeout_sec: Optional[float] = 30.0,
     ):
         super().__init__(name)
         self.node = node
@@ -60,7 +62,7 @@ class ActionBehaviour(py_trees.behaviour.Behaviour):
                           self.node.get_clock().now() - self._start_time
                   ).nanoseconds / 1e9
 
-        if elapsed > self.timeout_sec:
+        if self.timeout_sec is not None and elapsed > self.timeout_sec:
             self.node.get_logger().error(
                 f"{self.name}: TIMEOUT"
             )
@@ -117,23 +119,17 @@ class MissionNode(Node):
 
         root.add_children([
             ActionBehaviour(
-                name="Search Gate",
+                name="Stabilize on position",
                 node=self,
-                action_type=SearchGate,
-                action_name="search_gate"
+                action_type=NormalAction,
+                action_name="stabilize_on_position"
             ),
             ActionBehaviour(
-                name="Move To Gate",
+                name="Stabilize on position 2",
                 node=self,
-                action_type=MoveToGate,
-                action_name="move_to_gate"
-            ),
-            ActionBehaviour(
-                name="Hello World",
-                node=self,
-                action_type=HelloWorld,
-                action_name="hello_world"
-            ),
+                action_type=NormalAction,
+                action_name="stabilize_2"
+            )
         ])
 
         return root
